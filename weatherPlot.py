@@ -1,6 +1,7 @@
 
 
 from PIL import Image, ImageDraw
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 from weather_interface import WeatherInterface
 import datetime
@@ -13,7 +14,7 @@ class WeatherPlot():
         self.datafile = str(os.getcwd())+'/weather.txt'     #Location of data file
         self.wi = WeatherInterface()
 
-    def plot(self, sensorname, color, timestamp, sensordata):
+    def plot(self, sensorname, color, sensordata, timestamp):
         #Generic plotting routine
 
         fig,ax=plt.subplots(1)
@@ -23,8 +24,10 @@ class WeatherPlot():
         ax.set_title(str(sensorname))
 
         ax.plot(timestamp, sensordata, color+'.')
-        plt.gcf().autofmt_xdate()
-        #ax.legend( loc='upper right', ncol=1, shadow=True, numpoints = 3 )
+        majorFormatter = mpl.dates.DateFormatter('%m-%d %H:%M')
+        ax.xaxis.set_major_formatter(majorFormatter)
+        ax.autoscale_view()
+        plt.gcf().autofmt_xdate()       #Make dates look pretty in plot
         plt.grid(True)
         fig.tight_layout()
         plt.show()
@@ -49,6 +52,16 @@ class WeatherPlot():
             timestamps.append(timeobj)
         return data, timestamps
 
+    def convertPressure(self, pressureData):
+        '''
+        Convert the pressure data from pascal to inHg
+        '''
+        atmData = []
+        for i in range(len(pressureData)):
+            #atmData.append((pressureData[i])/3386.375258)  #inHg
+            atmData.append((pressureData[i])/101325.0)     #atm
+        return atmData
+
 if __name__ == "__main__":
     wp = WeatherPlot()
     #Extract the data for a named sensor
@@ -65,6 +78,7 @@ if __name__ == "__main__":
     windgustmph, Wind Gust [mph]
     windspeedmph, Wind Speed [mph]
     '''
-    data, timestamps = wp.dataToLists('humidity')
+    data, timestamps = wp.dataToLists('pressure')
+    data = wp.convertPressure(data)
     #Plot the data
-    wp.plot('Humidity', 'b', timestamps, data)
+    wp.plot('Pressure [atm]', 'b', data, timestamps)
