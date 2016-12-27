@@ -65,6 +65,31 @@ class WeatherPlot():
             atmData.append((pressureData[i])/101325.0)     #atm
         return atmData
 
+    def plotWind(self):
+        windmph, timestamps = self.dataToLists('windspeedmph')
+        windavg2m, timestamps = self.dataToLists('windspdmph_avg2m')
+        windgust10m, timestamps = self.dataToLists('windgustmph_10m')
+
+        fig,ax=plt.subplots(1)
+        fig.set_size_inches(8,8)
+        ax.set_ylabel('Wind Speed [mph]')
+        ax.set_xlabel('Time [hours]')
+        ax.set_title('Wind Data')
+
+        ax.plot(timestamps, windmph, 'b-.', label='Wind Speed')
+        ax.plot(timestamps, windavg2m, 'b-', label='Average Wind Speed (2 min)')
+        ax.plot(timestamps, windgust10m, 'r--', label='Wind Gust (10 min)')
+        majorFormatter = mpl.dates.DateFormatter('%m-%d %H:%M')
+        ax.xaxis.set_major_formatter(majorFormatter)
+        ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+        ax.autoscale_view()
+        ax.legend( loc='upper left', ncol=1, shadow=True, numpoints = 2 )
+        plt.gcf().autofmt_xdate()       #Make dates look pretty in plot
+        plt.grid(True)
+        fig.tight_layout()
+        plt.savefig(os.getcwd()+'/Wind.png', bbox_inches='tight')
+	return
+
 if __name__ == "__main__":
     wp = WeatherPlot()
     #Extract the data for a named sensor
@@ -81,6 +106,7 @@ if __name__ == "__main__":
     #'windgustmph': 'Wind Gust [mph]',
     #'windspeedmph': 'Wind Speed [mph]'
     }
+    wp.plotWind()
     for key, value in weatherDict.iteritems():
     	sensorname = key
     	sensortitle = value
