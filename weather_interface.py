@@ -62,13 +62,12 @@ class WeatherInterface():
             s (string): parsed serial output
         """
         s = self.ser.readline().rstrip("\n").rstrip("\r")
-        #print s
         return s
 
     def serOut(self, status, filename):
-	directory = str(os.getcwd())+filename
+        directory = str(os.getcwd())+filename
         f_out = open(directory,'a')
-	#print str(directory)
+        #print str(directory)
         f_out.write(str(status)+'\n')
         f_out.close()
 
@@ -85,9 +84,10 @@ class WeatherInterface():
             timedDat = rawDat+',timestamp='+str(time.strftime("%Y%m%d-%H:%M:%S"))
             try:
                 sortedDat = self.sortOutput(timedDat)
-		if len(sortedDat) == self.dictlength:
+                if len(sortedDat) == self.dictlength:
                     self.serOut(timedDat, self.logfile)
                     nap = 10
+                    print "tmp[F]="+str(sortedDat['tempf'])+",hum[%]="+str(sortedDat['humidity'])+",pressure[pas]="+str(sortedDat['pressure'])+",windspeedmph="+str(sortedDat['windspeedmph'])+",windgustmph_10m="+str(sortedDat['windgustmph_10m'])
                 else:
                     nap = 0.1
             except:
@@ -100,7 +100,7 @@ if __name__ == "__main__":
     w = WeatherInterface()
     run = True
     w.openPort()
-    time.sleep(5)
+    time.sleep(2)
     print 'port open'
     while run == True:
         w.run()

@@ -3,6 +3,7 @@
 from PIL import Image, ImageDraw
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+from matplotlib.ticker import FormatStrFormatter
 from weather_interface import WeatherInterface
 import datetime
 import time
@@ -10,7 +11,7 @@ import os
 
 class WeatherPlot():
     def __init__(self):
-        self.maxtime = 50           #Number of entries to plot
+        self.maxtime = 100          #Number of entries to plot
         self.datafile = str(os.getcwd())+'/weather.txt'     #Location of data file
         self.wi = WeatherInterface()
 
@@ -23,9 +24,10 @@ class WeatherPlot():
         ax.set_xlabel('Time [hours]')
         ax.set_title(str(sensorname))
 
-        ax.plot(timestamp, sensordata, color+'.')
+        ax.plot(timestamp, sensordata, color+'--*')
         majorFormatter = mpl.dates.DateFormatter('%m-%d %H:%M')
         ax.xaxis.set_major_formatter(majorFormatter)
+        ax.yaxis.set_major_formatter(FormatStrFormatter('%.3f'))
         ax.autoscale_view()
         plt.gcf().autofmt_xdate()       #Make dates look pretty in plot
         plt.grid(True)
@@ -40,6 +42,8 @@ class WeatherPlot():
         '''
         data = open(self.datafile,'r')
         datalist = data.readlines()
+        data.close()
+        datalist.reverse()
         checktime = datetime.datetime.now()
         timestamps = []
         data = []
@@ -74,7 +78,7 @@ if __name__ == "__main__":
     rainin, Rain [in]
     dailyrainin, Daily Rain [in]
     windgustmph_10m, Wind Gust - 10min [mph]
-    windspdmph_avg2m, Wind Gust - 2min avg [mph]
+    windspdmph_avg2m, Wind Speed - 2min avg [mph]
     windgustmph, Wind Gust [mph]
     windspeedmph, Wind Speed [mph]
     '''
