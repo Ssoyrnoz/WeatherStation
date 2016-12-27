@@ -97,7 +97,7 @@ class WeatherPlot():
         #'sensorname': 'sensortitle',
         'tempf': 'Temp [F]',
         'humidity': 'Humidity [%]',
-        'pressure': 'Pressure [pascal]',
+        'pressure': 'Pressure [inHg]',
         #'light_lvl': 'Light Level',
         #'rainin': 'Rain [in]',
         #'dailyrainin': 'Daily Rain [in]',
@@ -112,7 +112,7 @@ class WeatherPlot():
         	sensortitle = value
         	data, timestamps = wp.dataToLists(sensorname)
         	if sensorname == 'pressure':
-    	    data = wp.convertPressure(data)
+	            data = wp.convertPressure(data)
         	#Plot the data
         	wp.plot(sensortitle, 'b', data, timestamps, sensorname)
         shutil.copy(os.getcwd()+'/wind.png', '/var/www/html/wind.png')
