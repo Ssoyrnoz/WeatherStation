@@ -81,7 +81,6 @@ if __name__ == "__main__":
     #'windgustmph': 'Wind Gust [mph]',
     #'windspeedmph': 'Wind Speed [mph]'
     }
-    '''
     for key, value in weatherDict.iteritems():
     	sensorname = key
     	sensortitle = value
