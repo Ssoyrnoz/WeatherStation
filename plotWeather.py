@@ -7,6 +7,7 @@ from weather_interface import WeatherInterface
 import datetime
 import time
 import os
+import shutil
 
 class WeatherPlot():
     def __init__(self):
@@ -91,28 +92,46 @@ class WeatherPlot():
         plt.savefig(os.getcwd()+'/wind.png', bbox_inches='tight')
 	return
 
+    def run(self):
+        weatherDict = {
+        #'sensorname': 'sensortitle',
+        'tempf': 'Temp [F]',
+        'humidity': 'Humidity [%]',
+        'pressure': 'Pressure [pascal]',
+        #'light_lvl': 'Light Level',
+        #'rainin': 'Rain [in]',
+        #'dailyrainin': 'Daily Rain [in]',
+        #'windgustmph_10m': 'Wind Gust - 10min [mph]',
+        #'windspdmph_avg2m': 'Wind Speed - 2min avg [mph]',
+        #'windgustmph': 'Wind Gust [mph]',
+        #'windspeedmph': 'Wind Speed [mph]'
+        }
+        self.plotWind()
+        for key, value in weatherDict.iteritems():
+        	sensorname = key
+        	sensortitle = value
+        	data, timestamps = wp.dataToLists(sensorname)
+        	if sensorname == 'pressure':
+    	    data = wp.convertPressure(data)
+        	#Plot the data
+        	wp.plot(sensortitle, 'b', data, timestamps, sensorname)
+        shutil.copy(os.getcwd()+'/wind.png', '/var/www/html/wind.png')
+        print 'copied wind.png'
+        shutil.copy(os.getcwd()+'/tempf.png', '/var/www/html/tempf.png')
+        print 'copied tempf.png'
+        shutil.copy(os.getcwd()+'/humidity.png', '/var/www/html/humidity.png')
+        print 'copied humidity.png'
+        shutil.copy(os.getcwd()+'/pressure.png', '/var/www/html/pressure.png')
+        print 'copied pressure.png'
+
 if __name__ == "__main__":
     wp = WeatherPlot()
     #Extract the data for a named sensor
-    weatherDict = {
-    #'sensorname': 'sensortitle',
-    'tempf': 'Temp [F]',
-    'humidity': 'Humidity [%]',
-    'pressure': 'Pressure [pascal]',
-    #'light_lvl': 'Light Level',
-    #'rainin': 'Rain [in]',
-    #'dailyrainin': 'Daily Rain [in]',
-    #'windgustmph_10m': 'Wind Gust - 10min [mph]',
-    #'windspdmph_avg2m': 'Wind Speed - 2min avg [mph]',
-    #'windgustmph': 'Wind Gust [mph]',
-    #'windspeedmph': 'Wind Speed [mph]'
-    }
-    wp.plotWind()
-    for key, value in weatherDict.iteritems():
-    	sensorname = key
-    	sensortitle = value
-    	data, timestamps = wp.dataToLists(sensorname)
-    	if sensorname == 'pressure':
-	    data = wp.convertPressure(data)
-    	#Plot the data
-    	wp.plot(sensortitle, 'b', data, timestamps, sensorname)
+    run = True
+    while run == True:
+        tic = time.clock()
+        wp.run()
+        toc = time.clock()
+        elapsedTime = toc - tic
+        print elapsedTime
+        time.sleep(30.0-elapsedTime)
