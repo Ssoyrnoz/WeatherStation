@@ -87,7 +87,7 @@ class WeatherInterface():
                 if len(sortedDat) == self.dictlength:
                     self.serOut(timedDat, self.logfile)
                     nap = 10
-                    print "tmp[F]="+str(sortedDat['tempf'])+",hum[%]="+str(sortedDat['humidity'])+",pressure[pas]="+str(sortedDat['pressure'])+",windspeedmph="+str(sortedDat['windspeedmph'])+",windgustmph_10m="+str(sortedDat['windgustmph_10m'])
+                    print "tmp[F]="+str(sortedDat['tempf'])+",hum[%]="+str(sortedDat['humidity'])+",prs[pas]="+str(sortedDat['pressure'])+",wspd="+str(sortedDat['windspeedmph'])+",wspd2m="+str(sortedDat['windspdmph_avg2m'])+",wgst10m="+str(sortedDat['windgustmph_10m'])
                 else:
                     nap = 0.1
             except:
