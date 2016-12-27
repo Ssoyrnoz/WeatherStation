@@ -61,12 +61,12 @@ class WeatherPlot():
         '''
         atmData = []
         for i in range(len(pressureData)):
-            #atmData.append((pressureData[i])/3386.375258)  #inHg
-            atmData.append((pressureData[i])/101325.0)     #atm
+            atmData.append((pressureData[i])/3386.375258)  #inHg
+            #atmData.append((pressureData[i])/101325.0)     #atm
         return atmData
 
     def plotWind(self):
-        windmph, timestamps = self.dataToLists('windspeedmph')
+        #windmph, timestamps = self.dataToLists('windspeedmph')
         windavg2m, timestamps = self.dataToLists('windspdmph_avg2m')
         windgust10m, timestamps = self.dataToLists('windgustmph_10m')
 
@@ -76,8 +76,8 @@ class WeatherPlot():
         ax.set_xlabel('Time [hours]')
         ax.set_title('Wind Data')
 
-        ax.plot(timestamps, windmph, 'b-.', label='Wind Speed')
-        ax.plot(timestamps, windavg2m, 'b-', label='Average Wind Speed (2 min)')
+        #ax.plot(timestamps, windmph, 'b-.', label='Wind Speed')
+        ax.plot(timestamps, windavg2m, 'b-', label='Wind Spd Avg (2 min)')
         ax.plot(timestamps, windgust10m, 'r--', label='Wind Gust (10 min)')
         majorFormatter = mpl.dates.DateFormatter('%m-%d %H:%M')
         ax.xaxis.set_major_formatter(majorFormatter)
@@ -87,7 +87,7 @@ class WeatherPlot():
         plt.gcf().autofmt_xdate()       #Make dates look pretty in plot
         plt.grid(True)
         fig.tight_layout()
-        plt.savefig(os.getcwd()+'/Wind.png', bbox_inches='tight')
+        plt.savefig(os.getcwd()+'/wind.png', bbox_inches='tight')
 	return
 
 if __name__ == "__main__":
@@ -97,7 +97,7 @@ if __name__ == "__main__":
     #'sensorname': 'sensortitle',
     'tempf': 'Temp [F]',
     'humidity': 'Humidity [%]',
-    'pressure': 'Pressure [pascal]',
+    'pressure': 'Pressure [inHg]',
     #'light_lvl': 'Light Level',
     #'rainin': 'Rain [in]',
     #'dailyrainin': 'Daily Rain [in]',
@@ -111,6 +111,7 @@ if __name__ == "__main__":
     	sensorname = key
     	sensortitle = value
     	data, timestamps = wp.dataToLists(sensorname)
-    	#data = wp.convertPressure(data)
+        if sensorname == 'pressure':
+	    data = wp.convertPressure(data)
     	#Plot the data
     	wp.plot(sensortitle, 'b', data, timestamps, sensorname)
