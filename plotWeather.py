@@ -14,15 +14,15 @@ import shutil
 class WeatherPlot():
     def __init__(self):
         self.maxtime = 520          #Number of entries to plot
-        self.logfile = str(datetime.strftime("%Y%m%d"))+"-weather.txt"
-        self.datafile = str(os.getcwd())+'/'+self.logfile+'.txt'     #Location of data file
+        self.logfile = datetime.datetime.strftime(datetime.datetime.now(), "%Y%m%d")+"-weather.txt"
+        self.datafile = str(os.getcwd())+'/'+self.logfile     #Location of data file
         self.wi = WeatherInterface()
 
     def plot(self, sensorname, color, sensordata, timestamp, figname):
         #Generic plotting routine
 
         fig,ax=plt.subplots(1)
-        fig.set_size_inches(8,8)
+        fig.set_size_inches(8,4)
         ax.set_ylabel(str(sensorname))
         ax.set_xlabel('Time [hours]')
         ax.set_title(str(sensorname))
@@ -32,8 +32,8 @@ class WeatherPlot():
         ax.xaxis.set_major_formatter(majorFormatter)
         ax.yaxis.set_major_formatter(FormatStrFormatter('%.3f'))
         ax.autoscale_view()
-	    #ax.set_axis_bgcolor('black')
-	    plt.gcf().autofmt_xdate()       #Make dates look pretty in plot
+        #ax.set_axis_bgcolor('black')
+        plt.gcf().autofmt_xdate()       #Make dates look pretty in plot
         plt.grid(True)
         fig.tight_layout()
         #plt.show()
@@ -81,7 +81,7 @@ class WeatherPlot():
         windgust10m, timestamps = self.dataToLists('windgustmph_10m')
 
         fig,ax=plt.subplots(1)
-        fig.set_size_inches(8,8)
+        fig.set_size_inches(8,4)
         ax.set_ylabel('Wind Speed [mph]')
         ax.set_xlabel('Time [hours]')
         ax.set_title('Wind Data')
@@ -95,7 +95,7 @@ class WeatherPlot():
         ax.autoscale_view()
         ax.legend( loc='upper left', ncol=1, shadow=True, numpoints = 2 )
         #ax.patch.set_facecolor('black')
-	    plt.gcf().autofmt_xdate()       #Make dates look pretty in plot
+        plt.gcf().autofmt_xdate()       #Make dates look pretty in plot
         plt.grid(True)
         fig.tight_layout()
         plt.savefig(os.getcwd()+'/wind.png', bbox_inches='tight')
@@ -107,13 +107,13 @@ class WeatherPlot():
         dewpoints, timestamps2 = self.dataToLists('dewpoint')
 
         fig,ax=plt.subplots(1)
-        fig.set_size_inches(8,8)
+        fig.set_size_inches(8,4)
         ax.set_ylabel('Temperature [F]')
         ax.set_xlabel('Time [hours]')
         ax.set_title('Temperature Data')
 
         #ax.plot(timestamps, windmph, 'b-.', label='Wind Speed')
-	    ax.plot(timestamps2, dewpoints, 'm--', label='Dewpoint [F]')
+        ax.plot(timestamps2, dewpoints, 'm--', label='Dewpoint [F]')
         ax.plot(timestamps, tempfs, 'c-', label='Temp [F]')
         #ax.plot(timestamps2, dewpoints, 'm-', label='Dewpoint [F]')
         majorFormatter = mpl.dates.DateFormatter('%m-%d %H:%M')
@@ -126,7 +126,7 @@ class WeatherPlot():
         plt.grid(True)
         fig.tight_layout()
         plt.savefig(os.getcwd()+'/tempf.png', bbox_inches='tight')
-	    plt.close('all')
+        plt.close('all')
         return
 
     def upload(self, sensorname):
@@ -146,7 +146,7 @@ class WeatherPlot():
         print 'copied '+sensorname+'.png'
 
     def run(self):
-        currentTime = currentTime = time.strftime("%Y%m%d-%H:%M:%S")
+        currentTime = datetime.datetime.now()
         weatherDict = {
         #'sensorname': 'sensortitle',
         #'tempf': 'Temp [F]',
@@ -165,22 +165,24 @@ class WeatherPlot():
         self.plotTemp()
         self.upload('tempf')
 
-	    for key, value in weatherDict.iteritems():
-        	sensorname = key
-        	sensortitle = value
-        	data, timestamps = wp.dataToLists(sensorname)
-        	if sensorname == 'pressure':
-	            data = wp.convertPressure(data)
-        	#Plot the data
-        	wp.plot(sensortitle, 'c', data, timestamps, sensorname)
-                wp.upload(sensorname)
-	        plt.close('all')
-	    return currentTime
+        for key, value in weatherDict.iteritems():
+            sensorname = key
+       	    sensortitle = value
+            data, timestamps = wp.dataToLists(sensorname)
+            if sensorname == 'pressure':
+	        data = wp.convertPressure(data)
+            #Plot the data
+            wp.plot(sensortitle, 'c', data, timestamps, sensorname)
+            wp.upload(sensorname)
+	    plt.close('all')
+	self.logfile = WeatherInterface().checkDay(currentTime)
+	return currentTime
 
 
 if __name__ == "__main__":
     wp = WeatherPlot()
     #Extract the data for a named sensor
+    #wp.self.logfile = WeatherInterface.checkDay(currentTime)
     run = True
     while run == True:
         tic = time.clock()
@@ -189,4 +191,4 @@ if __name__ == "__main__":
         elapsedTime = toc - tic
         print 'processing time [s] = '+str(elapsedTime)
         time.sleep(30.0-elapsedTime)
-        wp.self.logfile = WeatherInterface.checkDay(currentTime)
+        #wp.self.logfile = WeatherInterface.checkDay(currentTime)
