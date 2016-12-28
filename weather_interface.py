@@ -25,6 +25,7 @@ import serial
 import time
 import os
 import csv
+import math
 
 class WeatherInterface():
     def __init__(self):
@@ -81,12 +82,14 @@ class WeatherInterface():
     def dewPoint(self, humidity, tempf):
         if humidity > 100.0:
             humidity = 100.0
-        tempc = (tempf-32.0)*(5.0/9.0)
-        b = 17.67
+ 	tempC = (float(tempf)-32.0)/1.8
+	#print tempC
+	b = 17.67
         c = 243.5
-        gam = np.log(humidity/100.0)+(b*temp)/(c+tempc)
-        Tdpc = (c*gam)/(b-gam)
-        Tdp = Tdpc*(1.8)+32.0
+        gam = math.log(float(humidity)/100.0)+(b*tempC)/(c+tempC)
+	#print gam
+	TdpC = (c*gam)/(b-gam)
+	Tdp = TdpC*(1.8)+32.0
         return Tdp
 
     def run(self):
@@ -95,7 +98,10 @@ class WeatherInterface():
             timedDat = rawDat+',timestamp='+str(time.strftime("%Y%m%d-%H:%M:%S"))
             try:
                 sortedDat = self.sortOutput(timedDat)
-                sortedDat['dewpoint'] = self.dewPoint(sortedDat['humidity'], sortedDat['tempf'])
+                #print sortedDat
+		Tdp = self.dewPoint(sortedDat['humidity'], sortedDat['tempf'])
+		#print Tdp
+		sortedDat['dewpoint'] = Tdp
                 if len(sortedDat) == self.dictlength:
                     self.serOut(timedDat, self.logfile)
                     nap = 10

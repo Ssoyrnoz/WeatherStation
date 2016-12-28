@@ -103,7 +103,7 @@ class WeatherPlot():
 
     def plotTemp(self):
         tempfs, timestamps = self.dataToLists('tempf')
-        dewpoints, timestamps = self.dataToLists('dewpoint')
+        dewpoints, timestamps2 = self.dataToLists('dewpoint')
 
         fig,ax=plt.subplots(1)
         fig.set_size_inches(8,8)
@@ -112,37 +112,37 @@ class WeatherPlot():
         ax.set_title('Temperature Data')
 
         #ax.plot(timestamps, windmph, 'b-.', label='Wind Speed')
+	ax.plot(timestamps2, dewpoints, 'm--', label='Dewpoint [F]')
         ax.plot(timestamps, tempfs, 'c-', label='Temp [F]')
-        ax.plot(timestamps, dewpoints, 'm-', label='Dewpoint [F]')
+        #ax.plot(timestamps2, dewpoints, 'm-', label='Dewpoint [F]')
         majorFormatter = mpl.dates.DateFormatter('%m-%d %H:%M')
         ax.xaxis.set_major_formatter(majorFormatter)
         ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
         ax.autoscale_view()
         ax.legend( loc='upper left', ncol=1, shadow=True, numpoints = 2 )
         #ax.patch.set_facecolor('black')
-	    plt.gcf().autofmt_xdate()       #Make dates look pretty in plot
+        plt.gcf().autofmt_xdate()       #Make dates look pretty in plot
         plt.grid(True)
         fig.tight_layout()
         plt.savefig(os.getcwd()+'/tempf.png', bbox_inches='tight')
 	plt.close('all')
-    return
+        return
 
     def upload(self, sensorname):
         image = Image.open(os.getcwd()+'/'+sensorname+'.png')
-            if image.mode == 'RGBA':
-                r,g,b,a = image.split()
-                rgb_image = Image.merge('RGB', (r,g,b))
-                inverted_image = PIL.ImageOps.invert(rgb_image)
-                r2,g2,b2 = inverted_image.split()
-                final_transparent_image = Image.merge('RGBA', (r2,g2,b2,a))
-                final_transparent_image.save(os.getcwd()+'/'+sensorname+'.png')
-            else:
-                inverted_image = PIL.ImageOps.invert(image)
-                inverted_image.save(os.getcwd()+'/'sensorname+'.png')
+        if image.mode == 'RGBA':
+            r,g,b,a = image.split()
+            rgb_image = Image.merge('RGB', (r,g,b))
+            inverted_image = PIL.ImageOps.invert(rgb_image)
+            r2,g2,b2 = inverted_image.split()
+            final_transparent_image = Image.merge('RGBA', (r2,g2,b2,a))
+            final_transparent_image.save(os.getcwd()+'/'+sensorname+'.png')
+        else:
+            inverted_image = PIL.ImageOps.invert(image)
+            inverted_image.save(os.getcwd()+'/'+sensorname+'.png')
 
-
-            shutil.copy(os.getcwd()+'/'+sensorname+'.png', '/var/www/html/'+sensorname+'.png')
-            print 'copied '+sensorname+'.png'
+        shutil.copy(os.getcwd()+'/'+sensorname+'.png', '/var/www/html/'+sensorname+'.png')
+        print 'copied '+sensorname+'.png'
 
     def run(self):
         weatherDict = {
@@ -171,7 +171,7 @@ class WeatherPlot():
 	            data = wp.convertPressure(data)
         	#Plot the data
         	wp.plot(sensortitle, 'c', data, timestamps, sensorname)
-            wp.upload(sensorname)
+                wp.upload(sensorname)
 	        plt.close('all')
 	return
 
