@@ -29,7 +29,7 @@ import csv
 class WeatherInterface():
     def __init__(self):
 	self.serPort = '/dev/ttyACM0'
-        self.dictlength = 15        #Number of lines from serial
+        self.dictlength = 16        #Number of lines from serial
         self.logfile = '/weather.txt'
 
     def log(self):
@@ -78,16 +78,28 @@ class WeatherInterface():
         weatherDat = dict(x.split('=') for x in rawDat.split(','))
         return weatherDat
 
+    def dewPoint(self, humidity, tempf):
+        if humidity > 100.0:
+            humidity = 100.0
+        tempc = (tempf-32.0)*(5.0/9.0)
+        b = 17.67
+        c = 243.5
+        gam = np.log(humidity/100.0)+(b*temp)/(c+tempc)
+        Tdpc = (c*gam)/(b-gam)
+        Tdp = Tdpc*(1.8)+32.0
+        return Tdp
+
     def run(self):
         rawDat = self.readSer()
         if rawDat.startswith('winddir=') == True:
             timedDat = rawDat+',timestamp='+str(time.strftime("%Y%m%d-%H:%M:%S"))
             try:
                 sortedDat = self.sortOutput(timedDat)
+                sortedDat['dewpoint'] = self.dewPoint(sortedDat['humidity'], sortedDat['tempf'])
                 if len(sortedDat) == self.dictlength:
                     self.serOut(timedDat, self.logfile)
                     nap = 10
-                    print "tmp[F]="+str(sortedDat['tempf'])+",hum[%]="+str(sortedDat['humidity'])+",prs[pas]="+str(sortedDat['pressure'])+",wspd="+str(sortedDat['windspeedmph'])+",wspd2m="+str(sortedDat['windspdmph_avg2m'])+",wgst10m="+str(sortedDat['windgustmph_10m'])
+                    print "tmp[F]="+str(sortedDat['tempf'])+",hum[%]="+str(sortedDat['humidity'])+",dwp[F]="+str(sortedDat['dewpoint'])+",prs[pas]="+str(sortedDat['pressure'])+",wspd="+str(sortedDat['windspeedmph'])+",wspd2m="+str(sortedDat['windspdmph_avg2m'])+",wgst10m="+str(sortedDat['windgustmph_10m'])
                 else:
                     nap = 0.1
             except:
