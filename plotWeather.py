@@ -101,11 +101,53 @@ class WeatherPlot():
 	return
 	plt.close('all')
 
+    def plotTemp(self):
+        tempfs, timestamps = self.dataToLists('tempf')
+        dewpoints, timestamps = self.dataToLists('dewpoint')
+
+        fig,ax=plt.subplots(1)
+        fig.set_size_inches(8,8)
+        ax.set_ylabel('Temperature [F]')
+        ax.set_xlabel('Time [hours]')
+        ax.set_title('Temperature Data')
+
+        #ax.plot(timestamps, windmph, 'b-.', label='Wind Speed')
+        ax.plot(timestamps, tempfs, 'c-', label='Temp [F]')
+        ax.plot(timestamps, dewpoints, 'm-', label='Dewpoint [F]')
+        majorFormatter = mpl.dates.DateFormatter('%m-%d %H:%M')
+        ax.xaxis.set_major_formatter(majorFormatter)
+        ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+        ax.autoscale_view()
+        ax.legend( loc='upper left', ncol=1, shadow=True, numpoints = 2 )
+        #ax.patch.set_facecolor('black')
+	    plt.gcf().autofmt_xdate()       #Make dates look pretty in plot
+        plt.grid(True)
+        fig.tight_layout()
+        plt.savefig(os.getcwd()+'/tempf.png', bbox_inches='tight')
+	plt.close('all')
+    return
+
+    def upload(self, sensorname):
+        image = Image.open(os.getcwd()+'/'+sensorname+'.png')
+            if image.mode == 'RGBA':
+                r,g,b,a = image.split()
+                rgb_image = Image.merge('RGB', (r,g,b))
+                inverted_image = PIL.ImageOps.invert(rgb_image)
+                r2,g2,b2 = inverted_image.split()
+                final_transparent_image = Image.merge('RGBA', (r2,g2,b2,a))
+                final_transparent_image.save(os.getcwd()+'/'+sensorname+'.png')
+            else:
+                inverted_image = PIL.ImageOps.invert(image)
+                inverted_image.save(os.getcwd()+'/'sensorname+'.png')
+
+
+            shutil.copy(os.getcwd()+'/'+sensorname+'.png', '/var/www/html/'+sensorname+'.png')
+            print 'copied '+sensorname+'.png'
 
     def run(self):
         weatherDict = {
         #'sensorname': 'sensortitle',
-        'tempf': 'Temp [F]',
+        #'tempf': 'Temp [F]',
         'humidity': 'Humidity [%]',
         'pressure': 'Pressure [inHg]',
         #'light_lvl': 'Light Level',
@@ -117,22 +159,10 @@ class WeatherPlot():
         #'windspeedmph': 'Wind Speed [mph]'
         }
         self.plotWind()
+        self.upload('wind')
+        self.plotTemp()
+        self.upload('tempf')
 
-	image = Image.open(os.getcwd()+'/wind.png')
-        if image.mode == 'RGBA':
-            r,g,b,a = image.split()
-            rgb_image = Image.merge('RGB', (r,g,b))
-            inverted_image = PIL.ImageOps.invert(rgb_image)
-            r2,g2,b2 = inverted_image.split()
-            final_transparent_image = Image.merge('RGBA', (r2,g2,b2,a))
-            final_transparent_image.save(os.getcwd()+'/wind.png')
-        else:
-            inverted_image = PIL.ImageOps.invert(image)
-            inverted_image.save(os.getcwd()+'/wind.png')
-
-
-        shutil.copy(os.getcwd()+'/wind.png', '/var/www/html/wind.png')
-        print 'copied wind.png'
 	for key, value in weatherDict.iteritems():
         	sensorname = key
         	sensortitle = value
@@ -141,23 +171,8 @@ class WeatherPlot():
 	            data = wp.convertPressure(data)
         	#Plot the data
         	wp.plot(sensortitle, 'c', data, timestamps, sensorname)
-
-	        image = Image.open(os.getcwd()+'/'+sensorname+'.png')
-		if image.mode == 'RGBA':
-    		    r,g,b,a = image.split()
-        	    rgb_image = Image.merge('RGB', (r,g,b))
-		    inverted_image = PIL.ImageOps.invert(rgb_image)
-		    r2,g2,b2 = inverted_image.split()
-		    final_transparent_image = Image.merge('RGBA', (r2,g2,b2,a))
-		    final_transparent_image.save(os.getcwd()+'/'+sensorname+'.png')
-		else:
-		    inverted_image = PIL.ImageOps.invert(image)
-		    inverted_image.save(os.getcwd()+'/'+sensorname+'.png')
-
-
-		shutil.copy(os.getcwd()+'/'+str(sensorname)+'.png', '/var/www/html/'+str(sensorname)+'.png')
-	        print 'copied '+str(sensorname)+'.png'
-		plt.close('all')
+            wp.upload(sensorname)
+	        plt.close('all')
 	return
 
 
@@ -170,5 +185,5 @@ if __name__ == "__main__":
         wp.run()
         toc = time.clock()
         elapsedTime = toc - tic
-        print elapsedTime
+        print 'processing time [s] = '+str(elapsedTime)
         time.sleep(30.0-elapsedTime)
