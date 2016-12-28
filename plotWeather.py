@@ -76,7 +76,7 @@ class WeatherPlot():
         return atmData
 
     def plotWind(self):
-        windmph, timestamps = self.dataToLists('windspeedmph')
+        #windmph, timestamps = self.dataToLists('windspeedmph')
         windavg2m, timestamps = self.dataToLists('windspdmph_avg2m')
         windgust10m, timestamps = self.dataToLists('windgustmph_10m')
 
@@ -160,21 +160,25 @@ class WeatherPlot():
         #'windgustmph': 'Wind Gust [mph]',
         #'windspeedmph': 'Wind Speed [mph]'
         }
-        self.plotWind()
-        self.upload('wind')
-        self.plotTemp()
-        self.upload('tempf')
+	try:
+            self.plotWind()
+            self.upload('wind')
+            self.plotTemp()
+            self.upload('tempf')
 
-        for key, value in weatherDict.iteritems():
-            sensorname = key
-       	    sensortitle = value
-            data, timestamps = wp.dataToLists(sensorname)
-            if sensorname == 'pressure':
-	        data = wp.convertPressure(data)
-            #Plot the data
-            wp.plot(sensortitle, 'c', data, timestamps, sensorname)
-            wp.upload(sensorname)
-	    plt.close('all')
+            for key, value in weatherDict.iteritems():
+                sensorname = key
+       	        sensortitle = value
+                data, timestamps = wp.dataToLists(sensorname)
+                if sensorname == 'pressure':
+	            data = wp.convertPressure(data)
+                #Plot the data
+                wp.plot(sensortitle, 'c', data, timestamps, sensorname)
+                wp.upload(sensorname)
+	        plt.close('all')
+	except:
+	    print "plot cycle failed, skipping"
+	
 	self.logfile = WeatherInterface().checkDay(currentTime)
 	return currentTime
 
