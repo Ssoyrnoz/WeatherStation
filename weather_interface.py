@@ -94,10 +94,12 @@ class WeatherInterface():
         return Tdp
 
     def checkDay(self, timestamp):
-        now = datetime.today()
-        #checktime = datetime.strptime(timestamp, "%Y%m%d-%H:%M:%S")
+        now = datetime.datetime.now()
+        #print str(now.day())
+	#checktime = datetime.strptime(timestamp, "%Y%m%d-%H:%M:%S")
         checktime = timestamp
-        if (now-checktime).day == 0:
+	#print str(checktime.day())
+        if (now - checktime).days == 0:
             return
         else:
             print "Date change processing"
@@ -108,9 +110,10 @@ class WeatherInterface():
 
     def run(self):
         rawDat = self.readSer()
+	currentTime = datetime.datetime.now()
         if rawDat.startswith('winddir=') == True:
-            currentTime = time.strftime("%Y%m%d-%H:%M:%S")
-            timedDat = rawDat+',timestamp='+str(currentTime)
+            timestamp = currentTime.strftime("%Y%m%d-%H:%M:%S")
+            timedDat = rawDat+',timestamp='+str(timestamp)
             try:
                 sortedDat = self.sortOutput(timedDat)
                 #print sortedDat
@@ -135,9 +138,11 @@ if __name__ == "__main__":
     run = True
     w.openPort()
     time.sleep(2)
-    w.logfile = '/'+str(datetime.strftime("%Y%m%d"))+"-weather.txt"
+    now = datetime.datetime.now()
+    print str(now)
+    w.logfile = '/'+now.strftime("%Y%m%d")+"-weather.txt"
     print 'port open'
     while run == True:
-        currentTime = w.run()
-        w.checkDay(currentTime)
+        cTime = w.run()
+        junktime = w.checkDay(cTime)
     w.closePort()
