@@ -23,6 +23,7 @@ __status__ = "Developement"
 
 import serial
 import time
+import datetime
 import os
 import csv
 import math
@@ -92,10 +93,24 @@ class WeatherInterface():
 	Tdp = TdpC*(1.8)+32.0
         return Tdp
 
+    def checkDay(self, timestamp):
+        now = datetime.today()
+        #checktime = datetime.strptime(timestamp, "%Y%m%d-%H:%M:%S")
+        checktime = timestamp
+        if (now-checktime).day == 0:
+            return
+        else:
+            print "Date change processing"
+            self.closePort()
+            self.logfile = '/'+str(datetime.strftime("%Y%m%d"))+"-weather.txt"
+            self.openPort()
+            return
+
     def run(self):
         rawDat = self.readSer()
         if rawDat.startswith('winddir=') == True:
-            timedDat = rawDat+',timestamp='+str(time.strftime("%Y%m%d-%H:%M:%S"))
+            currentTime = time.strftime("%Y%m%d-%H:%M:%S")
+            timedDat = rawDat+',timestamp='+str(currentTime)
             try:
                 sortedDat = self.sortOutput(timedDat)
                 #print sortedDat
@@ -113,13 +128,16 @@ class WeatherInterface():
         else:
             nap = 0.1
         time.sleep(nap)
+        return currentTime
 
 if __name__ == "__main__":
     w = WeatherInterface()
     run = True
     w.openPort()
     time.sleep(2)
+    w.logfile = '/'+str(datetime.strftime("%Y%m%d"))+"-weather.txt"
     print 'port open'
     while run == True:
-        w.run()
+        currentTime = w.run()
+        w.checkDay(currentTime)
     w.closePort()
