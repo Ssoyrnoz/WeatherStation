@@ -104,7 +104,7 @@ class WeatherInterface():
             self.closePort()
             self.logfile = '/'+str(datetime.strftime("%Y%m%d"))+"-weather.txt"
             self.openPort()
-            return
+            return self.logfile
 
     def run(self):
         rawDat = self.readSer()

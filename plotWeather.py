@@ -189,4 +189,4 @@ if __name__ == "__main__":
         elapsedTime = toc - tic
         print 'processing time [s] = '+str(elapsedTime)
         time.sleep(30.0-elapsedTime)
-        WeatherInterface.checkDay(currentTime)
+        wp.self.logfile = WeatherInterface.checkDay(currentTime)
