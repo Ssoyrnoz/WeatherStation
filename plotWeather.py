@@ -1,6 +1,8 @@
 
 from PIL import Image, ImageDraw
+import PIL.ImageOps
 import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
 from weather_interface import WeatherInterface
@@ -29,11 +31,13 @@ class WeatherPlot():
         ax.xaxis.set_major_formatter(majorFormatter)
         ax.yaxis.set_major_formatter(FormatStrFormatter('%.3f'))
         ax.autoscale_view()
-        plt.gcf().autofmt_xdate()       #Make dates look pretty in plot
+	#ax.set_axis_bgcolor('black')
+	plt.gcf().autofmt_xdate()       #Make dates look pretty in plot
         plt.grid(True)
         fig.tight_layout()
         #plt.show()
         plt.savefig(os.getcwd()+'/'+figname+'.png', bbox_inches='tight')
+	plt.close('all')
 	return
 
     def dataToLists(self, sensorname):
@@ -49,12 +53,15 @@ class WeatherPlot():
         timestamps = []
         data = []
         for i in range(self.maxtime):
-            linedic = self.wi.sortOutput(str(datalist[i]))
-            temptime = linedic['timestamp']
-            temptime = temptime.strip('\n')
-            timeobj = datetime.datetime.strptime(temptime, "%Y%m%d-%H:%M:%S")
-            data.append(float(linedic[sensorname]))
-            timestamps.append(timeobj)
+            try:
+		linedic = self.wi.sortOutput(str(datalist[i]))
+            	temptime = linedic['timestamp']
+                temptime = temptime.strip('\n')
+                timeobj = datetime.datetime.strptime(temptime, "%Y%m%d-%H:%M:%S")
+                data.append(float(linedic[sensorname]))
+                timestamps.append(timeobj)
+	    except:
+		continue
         return data, timestamps
 
     def convertPressure(self, pressureData):
@@ -79,18 +86,21 @@ class WeatherPlot():
         ax.set_title('Wind Data')
 
         #ax.plot(timestamps, windmph, 'b-.', label='Wind Speed')
-        ax.plot(timestamps, windavg2m, 'b-', label='Avg Wind (2 min)')
-        ax.plot(timestamps, windgust10m, 'r--', label='Wind Gust (10 min)')
+        ax.plot(timestamps, windavg2m, 'c-', label='Avg Wind (2 min)')
+        ax.plot(timestamps, windgust10m, 'b--', label='Wind Gust (10 min)')
         majorFormatter = mpl.dates.DateFormatter('%m-%d %H:%M')
         ax.xaxis.set_major_formatter(majorFormatter)
         ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
         ax.autoscale_view()
         ax.legend( loc='upper left', ncol=1, shadow=True, numpoints = 2 )
-        plt.gcf().autofmt_xdate()       #Make dates look pretty in plot
+        #ax.patch.set_facecolor('black')
+	plt.gcf().autofmt_xdate()       #Make dates look pretty in plot
         plt.grid(True)
         fig.tight_layout()
         plt.savefig(os.getcwd()+'/wind.png', bbox_inches='tight')
 	return
+	plt.close('all')
+
 
     def run(self):
         weatherDict = {
@@ -99,30 +109,57 @@ class WeatherPlot():
         'humidity': 'Humidity [%]',
         'pressure': 'Pressure [inHg]',
         #'light_lvl': 'Light Level',
-        #'rainin': 'Rain [in]',
-        #'dailyrainin': 'Daily Rain [in]',
+        'rainin': 'Rain [in]',
+        'dailyrainin': 'Daily Rain [in]',
         #'windgustmph_10m': 'Wind Gust - 10min [mph]',
         #'windspdmph_avg2m': 'Wind Speed - 2min avg [mph]',
         #'windgustmph': 'Wind Gust [mph]',
         #'windspeedmph': 'Wind Speed [mph]'
         }
         self.plotWind()
-        for key, value in weatherDict.iteritems():
+
+	image = Image.open(os.getcwd()+'/wind.png')
+        if image.mode == 'RGBA':
+            r,g,b,a = image.split()
+            rgb_image = Image.merge('RGB', (r,g,b))
+            inverted_image = PIL.ImageOps.invert(rgb_image)
+            r2,g2,b2 = inverted_image.split()
+            final_transparent_image = Image.merge('RGBA', (r2,g2,b2,a))
+            final_transparent_image.save(os.getcwd()+'/wind.png')
+        else:
+            inverted_image = PIL.ImageOps.invert(image)
+            inverted_image.save(os.getcwd()+'/wind.png')
+
+
+        shutil.copy(os.getcwd()+'/wind.png', '/var/www/html/wind.png')
+        print 'copied wind.png'
+	for key, value in weatherDict.iteritems():
         	sensorname = key
         	sensortitle = value
         	data, timestamps = wp.dataToLists(sensorname)
         	if sensorname == 'pressure':
 	            data = wp.convertPressure(data)
         	#Plot the data
-        	wp.plot(sensortitle, 'b', data, timestamps, sensorname)
-        shutil.copy(os.getcwd()+'/wind.png', '/var/www/html/wind.png')
-        print 'copied wind.png'
-        shutil.copy(os.getcwd()+'/tempf.png', '/var/www/html/tempf.png')
-        print 'copied tempf.png'
-        shutil.copy(os.getcwd()+'/humidity.png', '/var/www/html/humidity.png')
-        print 'copied humidity.png'
-        shutil.copy(os.getcwd()+'/pressure.png', '/var/www/html/pressure.png')
-        print 'copied pressure.png'
+        	wp.plot(sensortitle, 'c', data, timestamps, sensorname)
+
+	        image = Image.open(os.getcwd()+'/'+sensorname+'.png')
+		if image.mode == 'RGBA':
+    		    r,g,b,a = image.split()
+        	    rgb_image = Image.merge('RGB', (r,g,b))
+		    inverted_image = PIL.ImageOps.invert(rgb_image)
+		    r2,g2,b2 = inverted_image.split()
+		    final_transparent_image = Image.merge('RGBA', (r2,g2,b2,a))
+		    final_transparent_image.save(os.getcwd()+'/'+sensorname+'.png')
+		else:
+		    inverted_image = PIL.ImageOps.invert(image)
+		    inverted_image.save(os.getcwd()+'/'+sensorname+'.png')
+
+
+		shutil.copy(os.getcwd()+'/'+str(sensorname)+'.png', '/var/www/html/'+str(sensorname)+'.png')
+	        print 'copied '+str(sensorname)+'.png'
+		plt.close('all')
+	return
+
 
 if __name__ == "__main__":
     wp = WeatherPlot()
