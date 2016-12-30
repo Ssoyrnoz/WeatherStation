@@ -14,8 +14,8 @@ import shutil
 class WeatherPlot():
     def __init__(self):
         self.maxtime = 520          #Number of entries to plot
-        self.logfile = datetime.datetime.strftime(datetime.datetime.now(), "%Y%m%d")+"-weather.txt"
-        self.datafile = str(os.getcwd())+'/'+self.logfile     #Location of data file
+        self.logfile = '/logs/'+datetime.datetime.strftime(datetime.datetime.now(), "%Y%m%d")+"-weather.txt"
+        self.datafile = str(os.getcwd())+self.logfile     #Location of data file
         self.wi = WeatherInterface()
 
     def plot(self, sensorname, color, sensordata, timestamp, figname):
@@ -145,6 +145,26 @@ class WeatherPlot():
         shutil.copy(os.getcwd()+'/'+sensorname+'.png', '/var/www/html/'+sensorname+'.png')
         print 'copied '+sensorname+'.png'
 
+    def checkDay(self, filename):
+	now = datetime.datetime.now()
+	filedate = filename.translate(None, '/logs/-weather.txt')
+	print filedate
+	checktime = datetime.strptime(filedate, "%Y%m%d")
+	#checktime = datetime
+	#print str(checktime.day())
+	if (now - checktime).days == 0:
+	    return
+	else:
+	    print "Date change processing"
+	    self.closePort()
+	    time.sleep(30)            
+	    self.logfile = '/logs/'+str(datetime.strftime("%Y%m%d"))+"-weather.txt"
+	    self.openPort()
+	    print "Date change complete"
+	    time.sleep(2)
+	    return
+
+
     def run(self):
         currentTime = datetime.datetime.now()
         weatherDict = {
@@ -179,7 +199,7 @@ class WeatherPlot():
 	except:
 	    print "plot cycle failed, skipping"
 	
-	self.logfile = WeatherInterface().checkDay(currentTime)
+	self.checkDay(self.logfile)
 	return currentTime
 
 
