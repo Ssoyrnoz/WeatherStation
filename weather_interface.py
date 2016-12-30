@@ -32,7 +32,8 @@ class WeatherInterface():
     def __init__(self):
 	self.serPort = '/dev/ttyACM0'
         self.dictlength = 16        #Number of lines from serial
-        self.logfile = '/weather.txt'
+        self.logfile = '/'+datetime.datetime.now().strftime("%Y%m%d")+"-weather.txt"
+        #self.logfile = '/weather.txt'
 
     def log(self):
     	"""
@@ -93,11 +94,12 @@ class WeatherInterface():
 	Tdp = TdpC*(1.8)+32.0
         return Tdp
 
-    def checkDay(self, timestamp):
+    def checkDay(self, filename):
         now = datetime.datetime.now()
-        #print str(now.day())
-	#checktime = datetime.strptime(timestamp, "%Y%m%d-%H:%M:%S")
-        checktime = timestamp
+        filedate = filename.translate(None, '/-weather.txt')
+        print filedate
+	checktime = datetime.strptime(filedate, "%Y%m%d")
+        #checktime = datetime
 	#print str(checktime.day())
         if (now - checktime).days == 0:
             return
@@ -106,7 +108,7 @@ class WeatherInterface():
             self.closePort()
             self.logfile = '/'+str(datetime.strftime("%Y%m%d"))+"-weather.txt"
             self.openPort()
-            return self.logfile
+            return
 
     def run(self):
         rawDat = self.readSer()
@@ -131,7 +133,8 @@ class WeatherInterface():
         else:
             nap = 0.1
         time.sleep(nap)
-        return currentTime
+        self.checkDay(self.logfile)
+        return
 
 if __name__ == "__main__":
     w = WeatherInterface()
@@ -140,9 +143,9 @@ if __name__ == "__main__":
     time.sleep(2)
     now = datetime.datetime.now()
     print str(now)
-    w.logfile = '/'+now.strftime("%Y%m%d")+"-weather.txt"
+    #w.logfile = '/'+now.strftime("%Y%m%d")+"-weather.txt"
     print 'port open'
     while run == True:
-        cTime = w.run()
-        junktime = w.checkDay(cTime)
+        w.run()
+        #junktime = w.checkDay(cTime)
     w.closePort()
