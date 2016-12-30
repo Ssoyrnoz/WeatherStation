@@ -195,6 +195,8 @@ if __name__ == "__main__":
         elapsedTime = toc - tic
         if elapsedTime > 30.0:
 	    elapsedTime = 30.0
+	if elapsedTime < 0.0:
+	    elapsedTime = 30.0
 	print 'processing time [s] = '+str(elapsedTime)
         time.sleep(30.0-elapsedTime)
         #wp.self.logfile = WeatherInterface.checkDay(currentTime)
