@@ -10,15 +10,17 @@ import datetime
 import time
 import os
 import shutil
+import numpy as np
 
 class WeatherPlot():
     def __init__(self):
-        self.maxtime = 520          #Number of entries to plot
+        self.maxtime = 5000          #Number of entries to plot
         self.logfile = '/logs/'+datetime.datetime.strftime(datetime.datetime.now(), "%Y%m%d")+"-weather.txt"
         self.datafile = str(os.getcwd())+self.logfile     #Location of data file
         self.wi = WeatherInterface()
 
     def plot(self, sensorname, color, sensordata, timestamp, figname):
+	print len(sensordata)
         #Generic plotting routine
 
         fig,ax=plt.subplots(1)
@@ -54,15 +56,20 @@ class WeatherPlot():
         timestamps = []
         data = []
         for i in range(self.maxtime):
-            try:
+#	    print datalist[i]
+            #if datalist[i].startswith('wind'):
+	    try:
 		linedic = self.wi.sortOutput(str(datalist[i]))
             	temptime = linedic['timestamp']
                 temptime = temptime.strip('\n')
                 timeobj = datetime.datetime.strptime(temptime, "%Y%m%d-%H:%M:%S")
                 data.append(float(linedic[sensorname]))
                 timestamps.append(timeobj)
-	    except:
-		continue
+	    except Exception as e:
+		#print e
+	        continue
+	    #else:
+		#continue
         return data, timestamps
 
     def convertPressure(self, pressureData):
@@ -105,6 +112,9 @@ class WeatherPlot():
     def plotTemp(self):
         tempfs, timestamps = self.dataToLists('tempf')
         dewpoints, timestamps2 = self.dataToLists('dewpoint')
+	print len(tempfs)
+	print np.median(tempfs)
+	print np.median(dewpoints)
 
         fig,ax=plt.subplots(1)
         fig.set_size_inches(8,4)
@@ -149,7 +159,7 @@ class WeatherPlot():
 	now = datetime.datetime.now()
 	filedate = filename.translate(None, '/logs/-weather.txt')
 	print filedate
-	checktime = datetime.strptime(filedate, "%Y%m%d")
+	checktime = datetime.datetime.strptime(filedate, "%Y%m%d")
 	#checktime = datetime
 	#print str(checktime.day())
 	if (now - checktime).days == 0:
@@ -183,9 +193,15 @@ class WeatherPlot():
 	try:
             self.plotWind()
             self.upload('wind')
+	except Exception as e:
+	    print e
+	try:
             self.plotTemp()
             self.upload('tempf')
+	except Exception as e:
+	    print e
 
+	try:
             for key, value in weatherDict.iteritems():
                 sensorname = key
        	        sensortitle = value
@@ -196,8 +212,9 @@ class WeatherPlot():
                 wp.plot(sensortitle, 'c', data, timestamps, sensorname)
                 wp.upload(sensorname)
 	        plt.close('all')
-	except:
+	except Exception as e:
 	    print "plot cycle failed, skipping"
+	    print e
 	
 	self.checkDay(self.logfile)
 	return currentTime

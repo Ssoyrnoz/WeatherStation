@@ -82,15 +82,12 @@ class WeatherInterface():
         return weatherDat
 
     def dewPoint(self, humidity, tempf):
-        if humidity > 100.0:
-            humidity = 100.0
+        humidity = float(humidity)
+	#if humidity >= 100.0:
+        #    humidity = 100.0
+	#print humidity
  	tempC = (float(tempf)-32.0)/1.8
-	#print tempC
-	b = 17.67
-        c = 243.5
-        gam = math.log(float(humidity)/100.0)+(b*tempC)/(c+tempC)
-	#print gam
-	TdpC = (c*gam)/(b-gam)
+	TdpC = tempC - ((100.0 - humidity)/5.0)
 	Tdp = TdpC*(1.8)+32.0
         return Tdp
 
@@ -98,7 +95,7 @@ class WeatherInterface():
         now = datetime.datetime.now()
         filedate = filename.translate(None, '/logs/-weather.txt')
         print filedate
-	checktime = datetime.strptime(filedate, "%Y%m%d")
+	checktime = datetime.datetime.strptime(filedate, "%Y%m%d")
         #checktime = datetime
 	#print str(checktime.day())
         if (now - checktime).days == 0:
@@ -112,23 +109,31 @@ class WeatherInterface():
 
     def run(self):
         rawDat = self.readSer()
+	#print rawDat
 	currentTime = datetime.datetime.now()
         if rawDat.startswith('winddir=') == True:
             timestamp = currentTime.strftime("%Y%m%d-%H:%M:%S")
             timedDat = rawDat+',timestamp='+str(timestamp)
             try:
                 sortedDat = self.sortOutput(timedDat)
-                #print sortedDat
 		Tdp = self.dewPoint(sortedDat['humidity'], sortedDat['tempf'])
+		outDat = timedDat+',dewpoint=%.2f'%Tdp
 		#print Tdp
 		sortedDat['dewpoint'] = Tdp
-                if len(sortedDat) == self.dictlength:
-                    self.serOut(timedDat, self.logfile)
-                    nap = 10
-                    print "tmp[F]="+str(sortedDat['tempf'])+",hum[%]="+str(sortedDat['humidity'])+",dwp[F]="+str(sortedDat['dewpoint'])+",prs[pas]="+str(sortedDat['pressure'])+",wspd="+str(sortedDat['windspeedmph'])+",wspd2m="+str(sortedDat['windspdmph_avg2m'])+",wgst10m="+str(sortedDat['windgustmph_10m'])
-                else:
+                #print len(sortedDat)
+		#print sortedDat
+		if len(sortedDat) == self.dictlength:
+                    try:
+			self.serOut(outDat, self.logfile)
+                        nap = 10
+                        print "tmp[F]="+str(sortedDat['tempf'])+",hum[%]="+str(sortedDat['humidity'])+",dwp[F]="+str(sortedDat['dewpoint'])+",prs[pas]="+str(sortedDat['pressure'])+",wspd="+str(sortedDat['windspeedmph'])+",wspd2m="+str(sortedDat['windspdmph_avg2m'])+",wgst10m="+str(sortedDat['windgustmph_10m'])
+                    except Exception as e:
+			print e
+			nap = 0.1
+		else:
                     nap = 0.1
-            except:
+            except Exception as ex:
+		print ex
                 nap = 0.1
         else:
             nap = 0.1
