@@ -1,0 +1,1 @@
+winddir=0,windspeedmph=0.0,windgustmph=7.2,windgustdir=225,windspdmph_avg2m=0.2,winddir_avg2m=0,windgustmph_10m=3.2,windgustdir_10m=0,humidity=57.3,tempf=68.5,rainin=0.00,dailyrainin=0.00,pressure=98174.75,light_lvl=0.00,timestamp=20170726-22:30:51,dewpoint=53.13

@@ -103,7 +103,8 @@ class WeatherInterface():
         else:
             print "Date change processing"
             self.closePort()
-            self.logfile = '/logs/'+str(datetime.strftime("%Y%m%d"))+"-weather.txt"
+	    now = datetime.datetime.now()
+            self.logfile = '/logs/'+str(now.strftime("%Y%m%d"))+"-weather.txt"
             self.openPort()
             return
 
@@ -125,6 +126,9 @@ class WeatherInterface():
 		if len(sortedDat) == self.dictlength:
                     try:
 			self.serOut(outDat, self.logfile)
+			liveOut = open(str(os.getcwd())+'/live.txt', 'w')
+			liveOut.write(outDat)
+			liveOut.close()
                         nap = 10
                         print "tmp[F]="+str(sortedDat['tempf'])+",hum[%]="+str(sortedDat['humidity'])+",dwp[F]="+str(sortedDat['dewpoint'])+",prs[pas]="+str(sortedDat['pressure'])+",wspd="+str(sortedDat['windspeedmph'])+",wspd2m="+str(sortedDat['windspdmph_avg2m'])+",wgst10m="+str(sortedDat['windgustmph_10m'])
                     except Exception as e:

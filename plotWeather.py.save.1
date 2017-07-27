@@ -11,11 +11,10 @@ import os
 import shutil
 import numpy as np
 import operator
-import re
 
 class WeatherPlot():
     def __init__(self):
-        self.maxtime = 7000          #Number of entries to plot
+        self.maxtime = 8000          #Number of entries to plot
 	self.date = datetime.datetime.now()
         self.logfile = '/logs/'+datetime.datetime.strftime(self.date, "%Y%m%d")+"-weather.txt"
         self.datafile = str(os.getcwd())+self.logfile     #Location of data file
@@ -111,13 +110,12 @@ class WeatherPlot():
         ax.plot(windtimestamps, windavg2m, 'c-', label='Avg Wind (2 min)')
         ax.plot(gusttimestamps, windgust10m, 'b--', label='Wind Gust (10 min)')
 	
-	ax.annotate('Max Gust = %.1f [MPH]\n%s' % (windgust10m[index_gust_max], gusttimestamps[index_gust_max].strftime('%H:%M')),
+	ax.annotate('Max Gust = %.1f \r\n%s' % windgust10m[index_gust_max], 
 	xy=(gusttimestamps[index_gust_max], windgust10m[index_gust_max]),
-	xytext=(gusttimestamps[index_gust_max], windgust10m[index_gust_max]*0.7), #, textcoords='offset pixels',
-	bbox = dict(boxstyle='round', fc='black', fill=False),
-        horizontalalignment='center',
+	xytext=(-20, 20), textcoords='offset pixels',
+        horizontalalignment='right',
         verticalalignment='bottom',
-	arrowprops=dict(facecolor='white', shrink=0.1, fill=True))
+	arrowprops=dict(facecolor='white', shrink=0.2, fill=True))
         
 	majorFormatter = mpl.dates.DateFormatter('%m-%d %H:%M')
         ax.xaxis.set_major_formatter(majorFormatter)
@@ -145,19 +143,17 @@ class WeatherPlot():
 
         ax.plot(timestamps2, dewpoints, 'm--', label='Dewpoint [F]')
         ax.plot(timestamps, tempfs, 'c-', label='Temp [F]')
-	
-        ax.annotate('Max Temp = %.1f [F]\n%s' % (tempfs[index_temp_max], timestamps[index_temp_max].strftime('%H:%M')),
+
+        ax.annotate('Max Temp = %.1f' % tempfs[index_temp_max], 
         xy=(timestamps[index_temp_max], tempfs[index_temp_max]),
-        xytext=(timestamps[index_temp_max], tempfs[index_temp_max]*0.8), #textcoords='offset pixels',
-	bbox = dict(boxstyle='round', fc='black', fill=False),
-        horizontalalignment='center',
+        xytext=(-20, 20), textcoords='offset pixels',
+        horizontalalignment='right',
         verticalalignment='bottom',
         arrowprops=dict(facecolor='white', shrink=0.2, fill=True))
 
-	ax.annotate('Min Temp = %.1f [F]\n%s' % (tempfs[index_temp_min], timestamps[index_temp_min].strftime('%H:%M')),
+        ax.annotate('Min Temp = %.1f' % tempfs[index_temp_min], 
         xy=(timestamps[index_temp_min], tempfs[index_temp_min]),
-        xytext=(timestamps[index_temp_min], tempfs[index_temp_min]*1.2), #textcoords='offset pixels',
-	bbox = dict(boxstyle='round', fc='black', fill=False),
+        xytext=(-20, 20), textcoords='offset pixels',
         horizontalalignment='right',
         verticalalignment='bottom',
         arrowprops=dict(facecolor='white', shrink=0.2, fill=True))
@@ -193,14 +189,21 @@ class WeatherPlot():
 
     def checkDay(self, filename):
 	now = datetime.datetime.now()
-	filedate = str(filename).translate(None ,'/logs/-weather.txt')
+	filedate = filename.translate(None, '/logs/-weather.txt')
+	print filedate
 	checktime = datetime.datetime.strptime(filedate, "%Y%m%d")
+	#checktime = datetime
+	#print str(checktime.day())
 	if (now - checktime).days == 0:
 	    return
 	else:
 	    print "Date change processing"
-	    self.logfile = '/logs/'+str(datetime.datetime.strftime("%Y%m%d"))+"-weather.txt"
+	    #self.closePort()
+	    #time.sleep(30)            
+	    self.logfile = '/logs/'+str(datetime.strftime("%Y%m%d"))+"-weather.txt"
+	    #self.openPort()
 	    print "Date change complete"
+	    #time.sleep(2)
 	    return
 
 
