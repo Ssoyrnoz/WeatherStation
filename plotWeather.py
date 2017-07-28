@@ -34,7 +34,7 @@ class WeatherPlot():
         ax.plot(timestamp, sensordata, color+'-')
         majorFormatter = mpl.dates.DateFormatter('%m-%d %H:%M')
         ax.xaxis.set_major_formatter(majorFormatter)
-        ax.yaxis.set_major_formatter(FormatStrFormatter('%.3f'))
+        ax.yaxis.set_major_formatter(FormatStrFormatter('%.5f'))
         ax.autoscale_view()
         #ax.set_axis_bgcolor('black')
         plt.gcf().autofmt_xdate()       #Make dates look pretty in plot
@@ -93,9 +93,34 @@ class WeatherPlot():
         '''
         atmData = []
         for i in range(len(pressureData)):
-            atmData.append((pressureData[i])/3386.375258)  #inHg
-            #atmData.append((pressureData[i])/101325.0)     #atm
+            #atmData.append((pressureData[i])/3386.375258)  #inHg
+            atmData.append((pressureData[i])/101325.0)     #atm
         return atmData
+
+    def plotPressure(self, sensorname, color, sensordata, timestamp, figname):
+        print len(sensordata)
+        #Generic plotting routine
+
+        fig,ax=plt.subplots(1)
+        fig.set_size_inches(8,4)
+        ax.set_ylabel(str(sensorname))
+        ax.set_xlabel('Time [hours]')
+        ax.set_title(str(sensorname))
+
+        ax.plot(timestamp, sensordata, color+'-')
+        majorFormatter = mpl.dates.DateFormatter('%m-%d %H:%M')
+        ax.xaxis.set_major_formatter(majorFormatter)
+        ax.yaxis.set_major_formatter(FormatStrFormatter('%.5f'))
+        ax.autoscale_view()
+        #ax.set_axis_bgcolor('black')
+        plt.gcf().autofmt_xdate()       #Make dates look pretty in plot
+        plt.grid(True)
+        fig.tight_layout()
+        #plt.show()
+        plt.savefig(os.getcwd()+'/'+figname+'.png', bbox_inches='tight')
+        plt.close('all')
+        return
+
 
     def plotWind(self):
         #windmph, timestamps = self.dataToLists('windspeedmph')
@@ -210,7 +235,7 @@ class WeatherPlot():
         #'sensorname': 'sensortitle',
         #'tempf': 'Temp [F]',
         'humidity': 'Humidity [%]',
-        'pressure': 'Pressure [inHg]',
+        'pressure': 'Pressure [atm]',
         #'light_lvl': 'Light Level',
         'rainin': 'Rain [in]',
         'dailyrainin': 'Daily Rain [in]',
