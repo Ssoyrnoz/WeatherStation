@@ -16,13 +16,14 @@ import re
 class WeatherPlot():
     def __init__(self):
         self.maxtime = 7000          #Number of entries to plot
+	#self.date = datetime.datetime.strptime("20170731 23:00:00", "%Y%m%d %H:%M:%S")
 	self.date = datetime.datetime.now()
         self.logfile = '/logs/'+datetime.datetime.strftime(self.date, "%Y%m%d")+"-weather.txt"
         self.datafile = str(os.getcwd())+self.logfile     #Location of data file
         self.wi = WeatherInterface()
 
     def plot(self, sensorname, color, sensordata, timestamp, figname):
-	print len(sensordata)
+	#print len(sensordata)
         #Generic plotting routine
 
         fig,ax=plt.subplots(1)
@@ -98,7 +99,7 @@ class WeatherPlot():
         return atmData
 
     def plotPressure(self, sensorname, color, sensordata, timestamp, figname):
-        print len(sensordata)
+        #print len(sensordata)
         #Generic plotting routine
 
         fig,ax=plt.subplots(1)
@@ -160,7 +161,7 @@ class WeatherPlot():
     def plotTemp(self):
         tempfs, timestamps, index_temp_min, index_temp_max = self.dataToLists('tempf')
         dewpoints, timestamps2, index_dew_min, index_dew_max = self.dataToLists('dewpoint')
-	print len(tempfs)
+	#print len(tempfs)
 
         fig,ax=plt.subplots(1)
         fig.set_size_inches(8,4)
@@ -220,11 +221,16 @@ class WeatherPlot():
 	now = datetime.datetime.now()
 	filedate = str(filename).translate(None ,'/logs/-weather.txt')
 	checktime = datetime.datetime.strptime(filedate, "%Y%m%d")
+	print 'Now: '+now.strftime("%Y%m%d %H:%M:%S")
+	print 'Checktime: '+checktime.strftime("%Y%m%d")
+	print (now - checktime).days
 	if (now - checktime).days == 0:
 	    return
 	else:
 	    print "Date change processing"
-	    self.logfile = '/logs/'+str(datetime.datetime.strftime("%Y%m%d"))+"-weather.txt"
+	    self.date = now
+	    self.logfile = '/logs/'+str(self.date.strftime("%Y%m%d"))+"-weather.txt"
+	    print "Log file: "+self.logfile
 	    print "Date change complete"
 	    return
 
@@ -237,8 +243,8 @@ class WeatherPlot():
         'humidity': 'Humidity [%]',
         'pressure': 'Pressure [atm]',
         #'light_lvl': 'Light Level',
-        'rainin': 'Rain [in]',
-        'dailyrainin': 'Daily Rain [in]',
+        #'rainin': 'Rain [in]',
+        #'dailyrainin': 'Daily Rain [in]',
         #'windgustmph_10m': 'Wind Gust - 10min [mph]',
         #'windspdmph_avg2m': 'Wind Speed - 2min avg [mph]',
         #'windgustmph': 'Wind Gust [mph]',
@@ -278,7 +284,7 @@ class WeatherPlot():
 if __name__ == "__main__":
     wp = WeatherPlot()
     #Extract the data for a named sensor
-    #wp.self.logfile = WeatherInterface.checkDay(currentTime)
+    #wp.date = datetime.datetime.strptime("20170731 23:00:00", "%Y%m%d %H:%M:%S")
     run = True
     while run == True:
         tic = time.clock()

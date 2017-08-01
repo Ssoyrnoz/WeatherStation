@@ -94,7 +94,7 @@ class WeatherInterface():
     def checkDay(self, filename):
         now = datetime.datetime.now()
         filedate = filename.translate(None, '/logs/-weather.txt')
-        print filedate
+        print now.strftime("%Y%m%d %H:%M:%S")
 	checktime = datetime.datetime.strptime(filedate, "%Y%m%d")
         #checktime = datetime
 	#print str(checktime.day())
