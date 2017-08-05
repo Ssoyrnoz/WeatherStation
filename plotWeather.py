@@ -35,7 +35,7 @@ class WeatherPlot():
         ax.plot(timestamp, sensordata, color+'-')
         majorFormatter = mpl.dates.DateFormatter('%m-%d %H:%M')
         ax.xaxis.set_major_formatter(majorFormatter)
-        ax.yaxis.set_major_formatter(FormatStrFormatter('%.5f'))
+        ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
         ax.autoscale_view()
         #ax.set_axis_bgcolor('black')
         plt.gcf().autofmt_xdate()       #Make dates look pretty in plot
@@ -98,27 +98,32 @@ class WeatherPlot():
             atmData.append((pressureData[i])/101325.0)     #atm
         return atmData
 
-    def plotPressure(self, sensorname, color, sensordata, timestamp, figname):
-        #print len(sensordata)
-        #Generic plotting routine
+    def plotPressure(self, sensordata, timestamp):
+	stp = 0.964739		#Calculated for elev = 990 ft
+
+	stpList = []
+	for i in range(len(timestamp)):
+	    stpList.append(stp)
 
         fig,ax=plt.subplots(1)
         fig.set_size_inches(8,4)
-        ax.set_ylabel(str(sensorname))
+        ax.set_ylabel('Pressure [ATM]')
         ax.set_xlabel('Time [hours]')
-        ax.set_title(str(sensorname))
+        ax.set_title('Barometric Pressure')
 
-        ax.plot(timestamp, sensordata, color+'-')
+        ax.plot(timestamp, sensordata, 'c-')
+	ax.plot(timestamp, stpList, 'y-', label='Std. Pressure=%.4f'%stp)
         majorFormatter = mpl.dates.DateFormatter('%m-%d %H:%M')
         ax.xaxis.set_major_formatter(majorFormatter)
-        ax.yaxis.set_major_formatter(FormatStrFormatter('%.5f'))
+        ax.yaxis.set_major_formatter(FormatStrFormatter('%.4f'))
+	ax.legend( loc='upper left', ncol=1, shadow=True, numpoints = 2 )
         ax.autoscale_view()
         #ax.set_axis_bgcolor('black')
         plt.gcf().autofmt_xdate()       #Make dates look pretty in plot
         plt.grid(True)
         fig.tight_layout()
         #plt.show()
-        plt.savefig(os.getcwd()+'/'+figname+'.png', bbox_inches='tight')
+        plt.savefig(os.getcwd()+'/pressure.png', bbox_inches='tight')
         plt.close('all')
         return
 
@@ -229,6 +234,7 @@ class WeatherPlot():
 	else:
 	    print "Date change processing"
 	    self.date = now
+	    print "Date: "+self.date.strftime("%Y%m%d")
 	    self.logfile = '/logs/'+str(self.date.strftime("%Y%m%d"))+"-weather.txt"
 	    print "Log file: "+self.logfile
 	    print "Date change complete"
@@ -241,7 +247,7 @@ class WeatherPlot():
         #'sensorname': 'sensortitle',
         #'tempf': 'Temp [F]',
         'humidity': 'Humidity [%]',
-        'pressure': 'Pressure [atm]',
+        #'pressure': 'Pressure [atm]',
         #'light_lvl': 'Light Level',
         #'rainin': 'Rain [in]',
         #'dailyrainin': 'Daily Rain [in]',
@@ -261,13 +267,20 @@ class WeatherPlot():
 	except Exception as e:
 	    print e
 
+
+	try:
+	    data, timestamps, index_min, index_max = wp.dataToLists('pressure')
+	    data = wp.convertPressure(data)
+	    self.plotPressure(data, timestamps)
+	    self.upload('pressure')
+	except Exception as e:
+	    print e
+
 	try:
             for key, value in weatherDict.iteritems():
                 sensorname = key
        	        sensortitle = value
                 data, timestamps, index_min, index_max = wp.dataToLists(sensorname)
-                if sensorname == 'pressure':
-	            data = wp.convertPressure(data)
                 #Plot the data
                 wp.plot(sensortitle, 'c', data, timestamps, sensorname)
                 wp.upload(sensorname)
