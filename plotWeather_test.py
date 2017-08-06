@@ -141,6 +141,12 @@ class WeatherPlot():
 
         return data #, timestamps, index_min, index_max
 
+    def minmax(self, list):
+	index_min = min(xrange(len(list)), key=list.__getitem__)
+        index_max = max(xrange(len(list)), key=list.__getitem__)
+
+	return index_min, index_max
+
     def convertPressure(self, pressureData):
         '''
         Convert the pressure data from pascal to inHg or atm
@@ -250,6 +256,10 @@ class WeatherPlot():
     def plotTemp(self, dataDict):
         tempfs, timestamps, dewpoints = dataDict['tempf'], dataDict['timestamp'], dataDict['dewpoint']
 
+	index_temp_min, index_temp_max = self.minmax(tempfs)
+	minTemp, maxTemp = tempfs[index_temp_min], tempfs[index_temp_max]
+	print minTemp, maxTemp
+
         fig,ax=plt.subplots(1)
         fig.set_size_inches(8,4)
         ax.set_ylabel('Temperature [F]')
@@ -277,6 +287,8 @@ class WeatherPlot():
         arrowprops=dict(facecolor='white', shrink=0.2, fill=True))
 	'''
 
+	#ax.axes.set_position((.1, .3, .8, .6))
+	#plt.text(.02, .02, "MinTemp: "+str(minTemp)+", MaxTemp: "+str(maxTemp))
         majorFormatter = mpl.dates.DateFormatter('%m-%d %H:%M')
         ax.xaxis.set_major_formatter(majorFormatter)
         ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))

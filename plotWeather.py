@@ -7,118 +7,157 @@ from matplotlib.ticker import FormatStrFormatter
 from weather_interface import WeatherInterface
 import datetime
 import time
-import os
+import os, sys
 import shutil
 import numpy as np
 import operator
 import re
+import traceback
 
 class WeatherPlot():
     def __init__(self):
-        self.maxtime = 7000          #Number of entries to plot
-	self.plotTime = 8
-	#self.date = datetime.datetime.strptime("20170731 23:00:00", "%Y%m%d %H:%M:%S")
+	self.wi = WeatherInterface()
+	self.plotTime = 23		#Length of data plot, in hours - DO NOT EXCEED 23
+
+	self.sensorKeys = [
+        'winddir_avg2m',
+        'windgustmph',
+        'tempf',
+        'light_lvl',
+        'dewpoint',
+        'windspeedmph',
+        #'timestamp',
+        'windgustdir_10m',
+        'rainin',
+        'humidity',
+        'winddir',
+        'pressure',
+        'windspdmph_avg2m',
+        'windgustmph_10m',
+        'dailyrainin',
+        'windgustdir'
+        ]
+
+
 	self.date = datetime.datetime.now()
         self.logfile = '/logs/'+datetime.datetime.strftime(self.date, "%Y%m%d")+"-weather.txt"
         self.datafile = str(os.getcwd())+self.logfile     #Location of data file
-        self.wi = WeatherInterface()
 
-    def plot(self, sensorname, color, sensordata, timestamp, figname):
-	#print len(sensordata)
-        #Generic plotting routine
+	self.pressure = 'atm'
 
-        fig,ax=plt.subplots(1)
-        fig.set_size_inches(8,4)
-        ax.set_ylabel(str(sensorname))
-        ax.set_xlabel('Time [hours]')
-        ax.set_title(str(sensorname))
-
-        ax.plot(timestamp, sensordata, color+'-')
-        majorFormatter = mpl.dates.DateFormatter('%m-%d %H:%M')
-        ax.xaxis.set_major_formatter(majorFormatter)
-        ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
-        ax.autoscale_view()
-        #ax.set_axis_bgcolor('black')
-        plt.gcf().autofmt_xdate()       #Make dates look pretty in plot
-        plt.grid(True)
-        fig.tight_layout()
-        #plt.show()
-        plt.savefig(os.getcwd()+'/'+figname+'.png', bbox_inches='tight')
-	plt.close('all')
-	return
-
-    def dataToLists(self, sensorname):
+    def dataToLists(self):
         '''
         sort the data from each line in the data file
         and extract the data for a specific sensor
         '''
 
         checktime = datetime.datetime.now()
-	logDate = checktime
+	logDate = datetime.datetime.strftime(checktime, "%Y%m%d")
+	#print logDate
 	datecount = 0
 	timeCheck = 0
 
-	datalist = []
-        timestamps = []
-        data = []
+        data = {}
 
-	tempFile = open(str(os.getcwd())+'/logs/'+datetime.datetime.strftime(logDate, "%Y%m%d")+"-weather.txt",'r')
+	datalist = []
+	tempFile = open(str(os.getcwd())+'/logs/'+logDate+"-weather.txt",'r')
         templist = tempFile.readlines()
         tempFile.close()
         templist.reverse()
 	datalist = datalist + templist
 
+
+	sensorList = []
+	linedic = self.wi.sortOutput(str(datalist[0]))
+	for key in linedic:
+	    sensorList.append(key)
+	    data[key] = []
+
 	while timeCheck < self.plotTime:
-	    #print "checktime: "+checktime.strftime("%Y%m%d %H:%M:%S")
-	    #print "logDate: "+logDate.strftime("%Y%m%d %H:%M:%S")
+
+	    # Sort datafile into a dictionary of lists
+	    # data = {sensorName: [sensorData]}
+	    # Sorts through data from newest to oldest
 
             try:
 		linedic = self.wi.sortOutput(str(datalist[0]))
-                temptime = linedic['timestamp']
+
+		temptime = linedic['timestamp']
                 temptime = temptime.strip('\n')
                 timeobj = datetime.datetime.strptime(temptime, "%Y%m%d-%H:%M:%S")
-                data.append(float(linedic[sensorname]))
-                timestamps.append(timeobj)
-                del datalist[0]
-		timeCheck = (checktime - timeobj).seconds/(60*60)
+		del linedic['timestamp']
+
+
+		# Look for improper length dictionary
+		if len(linedic) != len(self.sensorKeys):
+		    print "Deleting "+str(linedic)+" for improper length"
+                    del datalist[0]
+                    continue
+
+		# Check for blank entries, remove newline char
+		for key in linedic:
+		    linedic[key] = linedic[key].strip('\n')
+		    if len(linedic[key]) == 0 :
+			print "Deleting "+str(linedic)+" for blank entry"
+			del datalist[0]
+			continue
+		    if key not in self.sensorKeys:
+			print "Deleting "+str(timeobj)+" for incorrect key: "+str(key)
+			del datalist[0]
+			linedic = {}
+			continue
+
+		for key in self.sensorKeys:
+		    data[key].append(linedic[key])
+		    del linedic[key]
+		    if len(linedic) == 0:
+			#print "Deleting "+datalist[0]+" because completed"
+			data['timestamp'].append(timeobj)
+			del datalist[0]
+
+		# See if the time is past self.plotTime
+		timeCheck = (checktime - timeobj).seconds/(60*60)	# Hours
 		#print timeCheck
+
+		if timeCheck < self.plotTime and len(datalist) < 1:
+		    print "Opening new log"
+		    datecount += 1
+		    logDateParse = datetime.datetime.strptime(logDate, "%Y%m%d")
+		    print "logDateParse: "+logDateParse.strftime("%Y%m%d")
+		    logDate = logDateParse - datetime.timedelta(days=1)
+		    tempFile = open(str(os.getcwd())+'/logs/'+logDate.strftime("%Y%m%d")+"-weather.txt",'r')
+		    print "new log file: logs/"+logDate.strftime("%Y%m%d")+"-weather.txt"
+		    templist = tempFile.readlines()
+		    tempFile.close()
+		    templist.reverse()
+		    datalist = datalist + templist
+
 	    except Exception as e:
-                print e
-                continue
-	    #print "timeCheck: "+str(timeCheck)
-	    #print len(datalist)
+                #print 'Exception: '+str(e)
+		#traceback.print_exc()
+	        continue
+	#index_min = min(xrange(len(data)), key=data.__getitem__)
+	#index_max = max(xrange(len(data)), key=data.__getitem__)
 
-	    if timeCheck < self.plotTime and len(datalist) <= 1:
-		print "Opening new log"
-		datecount += 1
-		logDate = logDate - datetime.timedelta(days=1)
-		print "logDate: "+logDate.strftime("%Y%m%d")
-		tempFile = open(str(os.getcwd())+'/logs/'+datetime.datetime.strftime(logDate, "%Y%m%d")+"-weather.txt",'r')
-		templist = tempFile.readlines()
-		tempFile.close()
-		templist.reverse()
-		datalist = datalist + templist
-
-	    if datecount > 2*24*self.plotTime:
-		print "Reached Max"
-	 	break
-
-	index_min = min(xrange(len(data)), key=data.__getitem__)
-	index_max = max(xrange(len(data)), key=data.__getitem__)
-
-        return data, timestamps, index_min, index_max
+        return data #, timestamps, index_min, index_max
 
     def convertPressure(self, pressureData):
         '''
-        Convert the pressure data from pascal to inHg
+        Convert the pressure data from pascal to inHg or atm
         '''
         atmData = []
+
         for i in range(len(pressureData)):
-            #atmData.append((pressureData[i])/3386.375258)  #inHg
-            atmData.append((pressureData[i])/101325.0)     #atm
+            if self.pressure == 'atm':
+		atmData.append(float(pressureData[i])/101325.0)     #atm
+	    else:
+	    	atmData.append(float(pressureData[i])/3386.375258)  #inHg
         return atmData
 
-    def plotPressure(self, sensordata, timestamp):
+    def plotPressure(self, dataDict):
+	pressure, timestamp = dataDict['pressure'], dataDict['timestamp']
+	pressure = self.convertPressure(pressure)
+
 	stp = 0.964739		#Calculated for elev = 990 ft
 
 	stpList = []
@@ -131,7 +170,7 @@ class WeatherPlot():
         ax.set_xlabel('Time [hours]')
         ax.set_title('Barometric Pressure')
 
-        ax.plot(timestamp, sensordata, 'c-')
+        ax.plot(timestamp, pressure, 'c-')
 	ax.plot(timestamp, stpList, 'y-', label='Std. Pressure=%.4f'%stp)
         majorFormatter = mpl.dates.DateFormatter('%m-%d %H:%M')
         ax.xaxis.set_major_formatter(majorFormatter)
@@ -147,11 +186,34 @@ class WeatherPlot():
         plt.close('all')
         return
 
+    def plotHumidity(self, dataDict):
+	humidity, timestamp = dataDict['humidity'], dataDict['timestamp']
 
-    def plotWind(self):
-        #windmph, timestamps = self.dataToLists('windspeedmph')
-        windavg2m, windtimestamps, index_wind_min, index_wind_max = self.dataToLists('windspdmph_avg2m')
-        windgust10m, gusttimestamps, index_gust_min, index_gust_max = self.dataToLists('windgustmph_10m')
+        fig,ax=plt.subplots(1)
+        fig.set_size_inches(8,4)
+        ax.set_ylabel('Humidity [%]')
+        ax.set_xlabel('Time')
+        ax.set_title('Humidity')
+
+        ax.plot(timestamp, humidity, 'm-')
+        majorFormatter = mpl.dates.DateFormatter('%m-%d %H:%M')
+        ax.xaxis.set_major_formatter(majorFormatter)
+        ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
+        ax.autoscale_view()
+        #ax.set_axis_bgcolor('black')
+        plt.gcf().autofmt_xdate()       #Make dates look pretty in plot
+        plt.grid(True)
+        fig.tight_layout()
+        #plt.show()
+        plt.savefig(os.getcwd()+'/humidity.png', bbox_inches='tight')
+        plt.close('all')
+        return
+
+
+
+    def plotWind(self, dataDict):
+
+        windavg2m, windgust10m, timestamps = dataDict['windspdmph_avg2m'], dataDict['windgustmph_10m'], dataDict['timestamp']
 
         fig,ax=plt.subplots(1)
         fig.set_size_inches(8,4)
@@ -159,9 +221,10 @@ class WeatherPlot():
         ax.set_xlabel('Time [hours]')
         ax.set_title('Wind Data')
 
-        ax.plot(windtimestamps, windavg2m, 'c-', label='Avg Wind (2 min)')
-        ax.plot(gusttimestamps, windgust10m, 'b--', label='Wind Gust (10 min)')
-	
+        ax.plot(timestamps, windavg2m, 'c-', label='Avg Wind (2 min)')
+        ax.plot(timestamps, windgust10m, 'b-', label='Wind Gust (10 min)')
+
+	'''
 	ax.annotate('Max Gust = %.1f [MPH]\n%s' % (windgust10m[index_gust_max], gusttimestamps[index_gust_max].strftime('%H:%M')),
 	xy=(gusttimestamps[index_gust_max], windgust10m[index_gust_max]),
 	xytext=(gusttimestamps[index_gust_max], windgust10m[index_gust_max]*0.7), #, textcoords='offset pixels',
@@ -169,10 +232,11 @@ class WeatherPlot():
         horizontalalignment='center',
         verticalalignment='bottom',
 	arrowprops=dict(facecolor='white', shrink=0.1, fill=True))
-        
+        '''
+
 	majorFormatter = mpl.dates.DateFormatter('%m-%d %H:%M')
         ax.xaxis.set_major_formatter(majorFormatter)
-        ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+        ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
         ax.autoscale_view()
         ax.legend( loc='upper left', ncol=1, shadow=True, numpoints = 2 )
         #ax.patch.set_facecolor('black')
@@ -183,10 +247,8 @@ class WeatherPlot():
 	return
 	plt.close('all')
 
-    def plotTemp(self):
-        tempfs, timestamps, index_temp_min, index_temp_max = self.dataToLists('tempf')
-        dewpoints, timestamps2, index_dew_min, index_dew_max = self.dataToLists('dewpoint')
-	#print len(tempfs)
+    def plotTemp(self, dataDict):
+        tempfs, timestamps, dewpoints = dataDict['tempf'], dataDict['timestamp'], dataDict['dewpoint']
 
         fig,ax=plt.subplots(1)
         fig.set_size_inches(8,4)
@@ -194,9 +256,10 @@ class WeatherPlot():
         ax.set_xlabel('Time [hours]')
         ax.set_title('Temperature Data')
 
-        ax.plot(timestamps2, dewpoints, 'm--', label='Dewpoint [F]')
+        ax.plot(timestamps, dewpoints, 'm-', label='Dewpoint [F]')
         ax.plot(timestamps, tempfs, 'c-', label='Temp [F]')
-	
+
+	'''
         ax.annotate('Max Temp = %.1f [F]\n%s' % (tempfs[index_temp_max], timestamps[index_temp_max].strftime('%H:%M')),
         xy=(timestamps[index_temp_max], tempfs[index_temp_max]),
         xytext=(timestamps[index_temp_max], tempfs[index_temp_max]*0.8), #textcoords='offset pixels',
@@ -212,10 +275,11 @@ class WeatherPlot():
         horizontalalignment='right',
         verticalalignment='bottom',
         arrowprops=dict(facecolor='white', shrink=0.2, fill=True))
+	'''
 
         majorFormatter = mpl.dates.DateFormatter('%m-%d %H:%M')
         ax.xaxis.set_major_formatter(majorFormatter)
-        ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+        ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
         ax.autoscale_view()
         ax.legend( loc='upper left', ncol=1, shadow=True, numpoints = 2 )
         #ax.patch.set_facecolor('black')
@@ -263,51 +327,23 @@ class WeatherPlot():
 
     def run(self):
         currentTime = datetime.datetime.now()
-        weatherDict = {
-        #'sensorname': 'sensortitle',
-        #'tempf': 'Temp [F]',
-        'humidity': 'Humidity [%]',
-        #'pressure': 'Pressure [atm]',
-        #'light_lvl': 'Light Level',
-        #'rainin': 'Rain [in]',
-        #'dailyrainin': 'Daily Rain [in]',
-        #'windgustmph_10m': 'Wind Gust - 10min [mph]',
-        #'windspdmph_avg2m': 'Wind Speed - 2min avg [mph]',
-        #'windgustmph': 'Wind Gust [mph]',
-        #'windspeedmph': 'Wind Speed [mph]'
-        }
+        dataDict = self.dataToLists()
+
 	try:
-            self.plotWind()
+            self.plotWind(dataDict)
             self.upload('wind')
-	except Exception as e:
-	    print e
-	try:
-            self.plotTemp()
+
+            self.plotTemp(dataDict)
             self.upload('tempf')
-	except Exception as e:
-	    print e
 
-
-	try:
-	    data, timestamps, index_min, index_max = wp.dataToLists('pressure')
-	    data = wp.convertPressure(data)
-	    self.plotPressure(data, timestamps)
+	    self.plotPressure(dataDict)
 	    self.upload('pressure')
-	except Exception as e:
-	    print e
 
-	try:
-            for key, value in weatherDict.iteritems():
-                sensorname = key
-       	        sensortitle = value
-                data, timestamps, index_min, index_max = wp.dataToLists(sensorname)
-                #Plot the data
-                wp.plot(sensortitle, 'c', data, timestamps, sensorname)
-                wp.upload(sensorname)
-	        plt.close('all')
+	    self.plotHumidity(dataDict)
+	    self.upload('humidity')
 	except Exception as e:
-	    print "plot cycle failed, skipping"
-	    print e
+	    print 'Exception:'+str(e)
+
 	shutil.copy(os.getcwd()+'/live.txt', '/var/www/cgi-bin/live.txt')
 
 	self.checkDay(self.logfile)
@@ -316,18 +352,18 @@ class WeatherPlot():
 
 if __name__ == "__main__":
     wp = WeatherPlot()
-    #Extract the data for a named sensor
-    #wp.date = datetime.datetime.strptime("20170731 23:00:00", "%Y%m%d %H:%M:%S")
+
     run = True
+    sleepTime = 30.0
+
     while run == True:
         tic = time.clock()
         currentTime = wp.run()
         toc = time.clock()
         elapsedTime = toc - tic
-        if elapsedTime > 30.0:
-	    elapsedTime = 30.0
+        if elapsedTime > sleepTime:
+	    elapsedTime = sleepTime
 	if elapsedTime < 0.0:
-	    elapsedTime = 30.0
+	    elapsedTime = sleepTime
 	print 'processing time [s] = '+str(elapsedTime)
-        time.sleep(30.0-elapsedTime)
-        #wp.self.logfile = WeatherInterface.checkDay(currentTime)
+        time.sleep(sleepTime-elapsedTime)
