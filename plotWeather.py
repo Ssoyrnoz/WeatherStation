@@ -16,6 +16,7 @@ import re
 class WeatherPlot():
     def __init__(self):
         self.maxtime = 7000          #Number of entries to plot
+	self.plotTime = 8
 	#self.date = datetime.datetime.strptime("20170731 23:00:00", "%Y%m%d %H:%M:%S")
 	self.date = datetime.datetime.now()
         self.logfile = '/logs/'+datetime.datetime.strftime(self.date, "%Y%m%d")+"-weather.txt"
@@ -51,38 +52,57 @@ class WeatherPlot():
         sort the data from each line in the data file
         and extract the data for a specific sensor
         '''
-        data = open(self.datafile,'r')
-        datalist = data.readlines()
-        data.close()
-        datalist.reverse()
+
         checktime = datetime.datetime.now()
+	logDate = checktime
+	datecount = 0
+	timeCheck = 0
+
+	datalist = []
         timestamps = []
         data = []
 
-	if (len(datalist) < self.maxtime) == True:
-	    try:
-		templog = str(os.getcwd())+'/logs/'+datetime.datetime.strftime(self.date - datetime.timedelta(days=1), "%Y%m%d")+"-weather.txt"
-		tempdata = open(templog, 'r')
-		templist = tempdata.readlines()
-		tempdata.close()
-		templist.reverse()
-		datalist = datalist + templist
-	    except Exception as e:
-		print e
+	tempFile = open(str(os.getcwd())+'/logs/'+datetime.datetime.strftime(logDate, "%Y%m%d")+"-weather.txt",'r')
+        templist = tempFile.readlines()
+        tempFile.close()
+        templist.reverse()
+	datalist = datalist + templist
 
-	for i in range(self.maxtime):
-	    try:
-		linedic = self.wi.sortOutput(str(datalist[i]))
-            	temptime = linedic['timestamp']
+	while timeCheck < self.plotTime:
+	    #print "checktime: "+checktime.strftime("%Y%m%d %H:%M:%S")
+	    #print "logDate: "+logDate.strftime("%Y%m%d %H:%M:%S")
+
+            try:
+		linedic = self.wi.sortOutput(str(datalist[0]))
+                temptime = linedic['timestamp']
                 temptime = temptime.strip('\n')
                 timeobj = datetime.datetime.strptime(temptime, "%Y%m%d-%H:%M:%S")
                 data.append(float(linedic[sensorname]))
                 timestamps.append(timeobj)
+                del datalist[0]
+		timeCheck = (checktime - timeobj).seconds/(60*60)
+		#print timeCheck
 	    except Exception as e:
-		#print e
-	        continue
-	    #else:
-		#continue
+                print e
+                continue
+	    #print "timeCheck: "+str(timeCheck)
+	    #print len(datalist)
+
+	    if timeCheck < self.plotTime and len(datalist) <= 1:
+		print "Opening new log"
+		datecount += 1
+		logDate = logDate - datetime.timedelta(days=1)
+		print "logDate: "+logDate.strftime("%Y%m%d")
+		tempFile = open(str(os.getcwd())+'/logs/'+datetime.datetime.strftime(logDate, "%Y%m%d")+"-weather.txt",'r')
+		templist = tempFile.readlines()
+		tempFile.close()
+		templist.reverse()
+		datalist = datalist + templist
+
+	    if datecount > 2*24*self.plotTime:
+		print "Reached Max"
+	 	break
+
 	index_min = min(xrange(len(data)), key=data.__getitem__)
 	index_max = max(xrange(len(data)), key=data.__getitem__)
 

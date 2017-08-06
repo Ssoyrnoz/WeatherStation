@@ -1,4 +1,4 @@
-from PIL import Image, ImageDraw
+ PIL import Image, ImageDraw
 import PIL.ImageOps
 import matplotlib as mpl
 mpl.use('Agg')
@@ -7,17 +7,16 @@ from matplotlib.ticker import FormatStrFormatter
 from weather_interface import WeatherInterface
 import datetime
 import time
-import os, sys
+import os
 import shutil
 import numpy as np
 import operator
 import re
-import traceback
 
 class WeatherPlot():
     def __init__(self):
 	self.wi = WeatherInterface()
-	self.plotTime = 23		#Length of data plot, in hours - DO NOT EXCEED 23
+	self.plotTime = 12		#Length of data plot, in hours
 
 	self.sensorKeys = [
         'winddir_avg2m',
@@ -75,8 +74,8 @@ class WeatherPlot():
 
 	while timeCheck < self.plotTime:
 
-	    # Sort datafile into a dictionary of lists
-	    # data = {sensorName: [sensorData]}
+	    # Sort datafile into a dictionary of dictionaries
+	    # data = {datetime object: {sensor: sensorData}}
 	    # Sorts through data from newest to oldest
 
             try:
@@ -90,7 +89,6 @@ class WeatherPlot():
 
 		# Look for improper length dictionary
 		if len(linedic) != len(self.sensorKeys):
-		    print "Deleting "+str(linedic)+" for improper length"
                     del datalist[0]
                     continue
 
@@ -98,20 +96,14 @@ class WeatherPlot():
 		for key in linedic:
 		    linedic[key] = linedic[key].strip('\n')
 		    if len(linedic[key]) == 0 :
-			print "Deleting "+str(linedic)+" for blank entry"
 			del datalist[0]
-			continue
-		    if key not in self.sensorKeys:
-			print "Deleting "+str(timeobj)+" for incorrect key: "+str(key)
-			del datalist[0]
-			linedic = {}
 			continue
 
 		for key in self.sensorKeys:
+		    print linedic[key]
 		    data[key].append(linedic[key])
 		    del linedic[key]
 		    if len(linedic) == 0:
-			#print "Deleting "+datalist[0]+" because completed"
 			data['timestamp'].append(timeobj)
 			del datalist[0]
 
@@ -119,23 +111,24 @@ class WeatherPlot():
 		timeCheck = (checktime - timeobj).seconds/(60*60)	# Hours
 		#print timeCheck
 
-		if timeCheck < self.plotTime and len(datalist) < 1:
+		if timeCheck < self.plotTime and len(datalist) <= 1:
 		    print "Opening new log"
 		    datecount += 1
 		    logDateParse = datetime.datetime.strptime(logDate, "%Y%m%d")
 		    print "logDateParse: "+logDateParse.strftime("%Y%m%d")
 		    logDate = logDateParse - datetime.timedelta(days=1)
 		    tempFile = open(str(os.getcwd())+'/logs/'+logDate.strftime("%Y%m%d")+"-weather.txt",'r')
-		    print "new log file: logs/"+logDate.strftime("%Y%m%d")+"-weather.txt"
+		    print "tempFile: /logs/"+logDate.strftime("%Y%m%d")+"-weather.txt"
 		    templist = tempFile.readlines()
 		    tempFile.close()
 		    templist.reverse()
+		    print len(datalist)
 		    datalist = datalist + templist
+		    print len(datalist)
 
 	    except Exception as e:
-                #print 'Exception: '+str(e)
-		#traceback.print_exc()
-	        continue
+                print 'Exception: '+str(e)
+		continue
 	#index_min = min(xrange(len(data)), key=data.__getitem__)
 	#index_max = max(xrange(len(data)), key=data.__getitem__)
 
@@ -236,7 +229,7 @@ class WeatherPlot():
 
 	majorFormatter = mpl.dates.DateFormatter('%m-%d %H:%M')
         ax.xaxis.set_major_formatter(majorFormatter)
-        ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
+        ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
         ax.autoscale_view()
         ax.legend( loc='upper left', ncol=1, shadow=True, numpoints = 2 )
         #ax.patch.set_facecolor('black')
@@ -279,7 +272,7 @@ class WeatherPlot():
 
         majorFormatter = mpl.dates.DateFormatter('%m-%d %H:%M')
         ax.xaxis.set_major_formatter(majorFormatter)
-        ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
+        ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
         ax.autoscale_view()
         ax.legend( loc='upper left', ncol=1, shadow=True, numpoints = 2 )
         #ax.patch.set_facecolor('black')
@@ -354,16 +347,14 @@ if __name__ == "__main__":
     wp = WeatherPlot()
 
     run = True
-    sleepTime = 30.0
-
     while run == True:
         tic = time.clock()
         currentTime = wp.run()
         toc = time.clock()
         elapsedTime = toc - tic
-        if elapsedTime > sleepTime:
-	    elapsedTime = sleepTime
+        if elapsedTime > 30.0:
+	    elapsedTime = 30.0
 	if elapsedTime < 0.0:
-	    elapsedTime = sleepTime
+	    elapsedTime = 30.0
 	print 'processing time [s] = '+str(elapsedTime)
-        time.sleep(sleepTime-elapsedTime)
+        time.sleep(30.0-elapsedTime)
