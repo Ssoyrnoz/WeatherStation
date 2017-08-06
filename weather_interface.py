@@ -119,7 +119,6 @@ class WeatherInterface():
                 sortedDat = self.sortOutput(timedDat)
 		Tdp = self.dewPoint(sortedDat['humidity'], sortedDat['tempf'])
 		outDat = timedDat+',dewpoint=%.2f'%Tdp
-		print outDat
 		sortedDat['dewpoint'] = str(Tdp).strip('\n')
                 #print len(sortedDat)
 		#print sortedDat

@@ -250,20 +250,21 @@ class WeatherPlot():
         plt.grid(True)
         fig.tight_layout()
         plt.savefig(os.getcwd()+'/wind.png', bbox_inches='tight')
-	return
 	plt.close('all')
+	plt.clf()
+	return
 
     def plotTemp(self, dataDict):
         tempfs, timestamps, dewpoints = dataDict['tempf'], dataDict['timestamp'], dataDict['dewpoint']
 
 	index_temp_min, index_temp_max = self.minmax(tempfs)
-	minTemp, maxTemp = tempfs[index_temp_min], tempfs[index_temp_max]
-	print minTemp, maxTemp
+	minTemp, maxTemp = float(tempfs[index_temp_min]), float(tempfs[index_temp_max])
+	minTime, maxTime = timestamps[index_temp_min], timestamps[index_temp_max]
 
         fig,ax=plt.subplots(1)
         fig.set_size_inches(8,4)
         ax.set_ylabel('Temperature [F]')
-        ax.set_xlabel('Time [hours]')
+        #ax.set_xlabel('Time [hours]')
         ax.set_title('Temperature Data')
 
         ax.plot(timestamps, dewpoints, 'm-', label='Dewpoint [F]')
@@ -287,8 +288,10 @@ class WeatherPlot():
         arrowprops=dict(facecolor='white', shrink=0.2, fill=True))
 	'''
 
-	#ax.axes.set_position((.1, .3, .8, .6))
-	#plt.text(.02, .02, "MinTemp: "+str(minTemp)+", MaxTemp: "+str(maxTemp))
+	minTimeStr = minTime.strftime('%m%d %H:%M')
+	maxTimeStr = maxTime.strftime('%m%d %H:%M')
+	minmaxText = datetime.datetime.now().strftime('%Y%m%d %H:%M:%S')+" || Min Temp: %.1f at %s || Max Temp: %.1f at %s" % (minTemp, minTimeStr, maxTemp, maxTimeStr)
+	fig.text(0.05, -0.02, minmaxText)
         majorFormatter = mpl.dates.DateFormatter('%m-%d %H:%M')
         ax.xaxis.set_major_formatter(majorFormatter)
         ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
@@ -300,6 +303,7 @@ class WeatherPlot():
         fig.tight_layout()
         plt.savefig(os.getcwd()+'/tempf.png', bbox_inches='tight')
         plt.close('all')
+	plt.clf()
         return
 
     def upload(self, sensorname):
