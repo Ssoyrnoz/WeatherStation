@@ -173,7 +173,6 @@ class WeatherPlot():
         fig,ax=plt.subplots(1)
         fig.set_size_inches(8,4)
         ax.set_ylabel('Pressure [ATM]')
-        ax.set_xlabel('Time [hours]')
         ax.set_title('Barometric Pressure')
 
         ax.plot(timestamp, pressure, 'c-')
@@ -185,6 +184,16 @@ class WeatherPlot():
         ax.autoscale_view()
         #ax.set_axis_bgcolor('black')
         plt.gcf().autofmt_xdate()       #Make dates look pretty in plot
+
+	ind_min_prs, ind_max_prs = self.minmax(pressure)
+        min_prs, max_prs = float(pressure[ind_min_prs]), float(pressure[ind_max_prs])
+        min_prs_time, max_prs_time = timestamp[ind_min_prs], timestamp[ind_max_prs]
+
+        minTimeStr = min_prs_time.strftime('%m-%d %H:%M')
+        maxTimeStr = max_prs_time.strftime('%m-%d %H:%M')
+        minmaxText = timestamp[0].strftime('%Y%m%d %H:%M:%S')+" || Current: %.5f \nLow: %.5f at %s || High: %.5f at %s" % (float(pressure[0]), min_prs, minTimeStr, max_prs, maxTimeStr)
+	fig.text(0.05, -0.06, minmaxText)
+
         plt.grid(True)
         fig.tight_layout()
         #plt.show()
@@ -198,7 +207,6 @@ class WeatherPlot():
         fig,ax=plt.subplots(1)
         fig.set_size_inches(8,4)
         ax.set_ylabel('Humidity [%]')
-        ax.set_xlabel('Time')
         ax.set_title('Humidity')
 
         ax.plot(timestamp, humidity, 'm-')
@@ -208,6 +216,16 @@ class WeatherPlot():
         ax.autoscale_view()
         #ax.set_axis_bgcolor('black')
         plt.gcf().autofmt_xdate()       #Make dates look pretty in plot
+
+	ind_min_hum, ind_max_hum = self.minmax(humidity)
+	min_hum, max_hum = float(humidity[ind_min_hum]), float(humidity[ind_max_hum])
+	min_hum_time, max_hum_time = timestamp[ind_min_hum], timestamp[ind_max_hum]
+
+	minTimeStr = min_hum_time.strftime('%m-%d %H:%M')
+        maxTimeStr = max_hum_time.strftime('%m-%d %H:%M')
+        minmaxText = timestamp[0].strftime('%Y%m%d %H:%M:%S')+" || Current: %.1f \nLow: %.1f at %s || High: %.1f at %s" % (float(humidity[0]), min_hum, minTimeStr, max_hum, maxTimeStr)
+        fig.text(0.05, -0.06, minmaxText)
+
         plt.grid(True)
         fig.tight_layout()
         #plt.show()
@@ -224,7 +242,6 @@ class WeatherPlot():
         fig,ax=plt.subplots(1)
         fig.set_size_inches(8,4)
         ax.set_ylabel('Wind Speed [mph]')
-        ax.set_xlabel('Time [hours]')
         ax.set_title('Wind Data')
 
         ax.plot(timestamps, windavg2m, 'c-', label='Avg Wind (2 min)')
@@ -239,6 +256,18 @@ class WeatherPlot():
         verticalalignment='bottom',
 	arrowprops=dict(facecolor='white', shrink=0.1, fill=True))
         '''
+
+	index_maxGust = self.minmax(windgust10m)[1]
+	maxGust = float(windgust10m[index_maxGust])
+	maxGustDir = float(dataDict['windgustdir'][index_maxGust])
+
+        currentWind = float(windavg2m[0])
+	currentGust = float(windgust10m[0])
+	currentDir = float(dataDict['winddir'][0])
+	currentGustDir = float(dataDict['windgustdir'][0])
+
+	minmaxText = timestamps[0].strftime('%Y%m%d %H:%M:%S')+" || Current: %.1f from %.0f \nCurrent Gust: %.1f from %.0f || Max Gust: %.1f from %.0f" % (currentWind, currentDir, currentGust, currentGustDir, maxGust, maxGustDir)
+        fig.text(0.05, -0.06, minmaxText)
 
 	majorFormatter = mpl.dates.DateFormatter('%m-%d %H:%M')
         ax.xaxis.set_major_formatter(majorFormatter)
@@ -288,10 +317,11 @@ class WeatherPlot():
         arrowprops=dict(facecolor='white', shrink=0.2, fill=True))
 	'''
 
-	minTimeStr = minTime.strftime('%m%d %H:%M')
-	maxTimeStr = maxTime.strftime('%m%d %H:%M')
-	minmaxText = datetime.datetime.now().strftime('%Y%m%d %H:%M:%S')+" || Min Temp: %.1f at %s || Max Temp: %.1f at %s" % (minTemp, minTimeStr, maxTemp, maxTimeStr)
-	fig.text(0.05, -0.02, minmaxText)
+	minTimeStr = minTime.strftime('%m-%d %H:%M')
+	maxTimeStr = maxTime.strftime('%m-%d %H:%M')
+	currentTemp = float(tempfs[0])
+	minmaxText = timestamps[0].strftime('%Y%m%d %H:%M:%S')+" || Current: %.1f \nLow: %.1f at %s || High: %.1f at %s" % (currentTemp, minTemp, minTimeStr, maxTemp, maxTimeStr)
+	fig.text(0.05, -0.06, minmaxText)
         majorFormatter = mpl.dates.DateFormatter('%m-%d %H:%M')
         ax.xaxis.set_major_formatter(majorFormatter)
         ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
