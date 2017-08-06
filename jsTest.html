@@ -12,22 +12,31 @@
         <center><font color="blue">Hermitage Weather Station - Release 0.3</font></center>
     </h2>
     <font color="white">
-    <p style="font-size:150%" id="temp"><a href="tempf.png">Temp [F]: Unavailable</a></p>
-    <p id="tempHigh">
+    <pre id="dataDump"><pre>
+    <p style="font-size:150%" id="sortedDat">Sorted data goes here</p>
 
     <table border="0">
     <tr>
-    <td><a href="tempf.png"><img src="tempf.png" width="600"  name="Temperature"></a></td>
-    <td><a href="wind.png"><img src="wind.png" width="600"  name="Wind Sensor"></a></td>
+        <th>Basic Data</th>
+	<th>Wind Data</th>
     </tr>
     <tr>
-    <td><a href="pressure.png"><img src="pressure.png" width="600"  name="Pressure"></a></td>
-    <td><a href="humidity.png"><img src="humidity.png" width="600"  name="Humidity"></a></td>
+	<td><p style="font-size:150%" id="temp"><a href="tempf.png">Temp [F]: Unavailable</a></p></td>
+	<td><p style="font-size:150%" id="wind"><a href="wind.png">Current Wind [mph]: Unavailable</a></p></td>
     </tr>
     <tr>
-    <td><a href="rainin.png"><img src="rainin.png" width="600"  name="Rain"></a></td>
-    <td><a href="dailyrainin.png"><img src="dailyrainin.png" width="600"  name="Daily Rain"></a></td>
+	<td><p style="font-size:150%" id="dewpoint"><a href="tempf.png">Dew Point [F]: Unavailable</a></p></td>
+	<td><p style="font-size:150%" id="windGust"><a href="wind.png">Current Wind Gust [mph]: Unavailable</a></p></td>
     </tr>
+    <tr>
+	<td><p style="font-size:150%" id="humidity"><a href="humidity.png">Humidity [%]: Unavailable</a></p></td>
+	<td></td>
+    </tr>
+    <tr>
+        <td><p style="font-size:150%" id="pressure"><a href="pressure.png">Atmospheric Pressure [atm]: Unavailable</a></p></td>
+        <td></td>
+    </tr>
+
     </table>
 <br><Br>
 <center>
@@ -37,14 +46,114 @@ Image will auto-refresh every 30 seconds<br><br>
 </body>
 
 <script>
-var temp = 38;
+
+var fileDisplayArea = document.getElementById("dataDump");
+var sortedDat = document.getElementById("sortedDat");
+
+var fileText;
+
+function readTextFile(file)
+{
+    var rawFile = new XMLHttpRequest();
+    rawFile.open("GET", file, false);
+    rawFile.onreadystatechange = function ()
+    {
+        if(rawFile.readyState === 4)
+        {
+            if(rawFile.status === 200 || rawFile.status == 0)
+            {
+                allText = rawFile.responseText;
+        	fileText = alltext
+	        // fileDisplayArea.innerText = allText;
+		// fileDisplayArea.style.color = "orange";
+            }
+        }
+    }
+    rawFile.send(null);
+}
+
+readTextFile("./live.txt");
+
+sortedDat.innerText = fileText;
+sortedDat.style.color = "red";
+
+var dataList = allText.split(",");
+
+sortedDat.innerText = dataList.length+dataList;
+sortedDat.style.color = "yellow";
+
+var dataArr = [];
+for (var i = 0; i < dataList.length; i++) {
+    sortedDat.innerText = dataList[i];
+    sortedDat.style.color = "purple";
+
+    var split = dataList[i].split('=');
+    dataArr[split[0].trim()] = split[1].trim();
+    }
+
+sortedDat.innerText = dataArr;
+sortedDat.style.color = "green";
+
+var temp = dataArr["tempf"];
 if (temp < 32){
 	document.getElementById("temp").style.color = "blue";}
 else if (temp >= 32 && temp < 37){
 	document.getElementById("temp").style.color = "yellow";}
 else{
 	document.getElementById("temp").style.color = "green";}
-document.getElementById("temp").innerHTML = "<a href='tempf.png'>Temp [F]:</a> "+temp;
+document.getElementById("temp").innerHTML = "<a href='tempf.png'>Temp:</a> "+temp+" [F]";
+
+var humidity = dataArr["humidity"];
+if (humidity > 95){
+        document.getElementById("humidity").style.color = "red";}
+else if (humidity > 80 && humidity <= 95){
+        document.getElementById("humidity").style.color = "yellow";}
+else{
+        document.getElementById("humidity").style.color = "green";}
+document.getElementById("humidity").innerHTML = "<a href='humidity.png'>Humidity:</a> "+humidity+" [%]";
+
+var dewpoint = dataArr["dewpoint"];
+var deltaDew = (temp - dewpoint)
+if (deltaDew < 5){
+        document.getElementById("dewpoint").style.color = "red";}
+else if (deltaDew >= 5 && deltaDew < 10){
+        document.getElementById("dewpoint").style.color = "yellow";}
+else{
+        document.getElementById("dewpoint").style.color = "green";}
+document.getElementById("dewpoint").innerHTML = "<a href='tempf.png'>Dew Point:</a> "+dewpoint+" [F]";
+
+var pressure = dataArr["pressure"];
+document.getElementById("pressure").innerHTML = "<a href='pressure.png'>Atmospheric Pressure:</a> "+dewpoint+" [atm]";
+document.getElementById("pressure").style.color = "green";
+
+/*
+winddir=270,
+windspeedmph=6.4,
+windgustmph=14.3,
+windgustdir=315,
+windspdmph_avg2m=4.1,
+winddir_avg2m=256,
+windgustmph_10m=12.9,
+windgustdir_10m=315
+*/
+var wind = dataArr["windspdmph_avg2m"];
+if (wind > 30){
+        document.getElementById("wind").style.color = "red";}
+else if (wind > 20 && wind <= 30){
+        document.getElementById("wind").style.color = "yellow";}
+else{
+        document.getElementById("wind").style.color = "green";}
+document.getElementById("wind").innerHTML = "<a href='wind.png'>Wind Speed - 2min avg:</a> "+wind+" [mph]";
+
+var windGust = dataArr["windgustmph_10m"];
+if (windGust > 45){
+        document.getElementById("windGust").style.color = "red";}
+else if (wind > 35 && wind <= 45){
+        document.getElementById("windGust").style.color = "yellow";}
+else{
+        document.getElementById("windGust").style.color = "green";}
+document.getElementById("windGust").innerHTML = "<a href='wind.png'>Wind Gust - 10min max:</a> "+windGust+" [mph]";
+
 </script>
 </html>
 
