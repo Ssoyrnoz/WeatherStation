@@ -175,7 +175,7 @@ class WeatherPlot():
         ax.set_ylabel('Pressure [ATM]')
         ax.set_title('Barometric Pressure')
 
-        ax.plot(timestamp, pressure, 'c-')
+        ax.plot(timestamp, pressure, 'm-')
 	ax.plot(timestamp, stpList, 'y-', label='Std. Pressure=%.4f'%stp)
         majorFormatter = mpl.dates.DateFormatter('%m-%d %H:%M')
         ax.xaxis.set_major_formatter(majorFormatter)
@@ -244,8 +244,8 @@ class WeatherPlot():
         ax.set_ylabel('Wind Speed [mph]')
         ax.set_title('Wind Data')
 
-        ax.plot(timestamps, windavg2m, 'c-', label='Avg Wind (2 min)')
-        ax.plot(timestamps, windgust10m, 'b-', label='Wind Gust (10 min)')
+        ax.plot(timestamps, windavg2m, 'y-', label='Avg Wind (2 min)')
+        ax.plot(timestamps, windgust10m, 'c-', label='Wind Gust (10 min)')
 
 	'''
 	ax.annotate('Max Gust = %.1f [MPH]\n%s' % (windgust10m[index_gust_max], gusttimestamps[index_gust_max].strftime('%H:%M')),
@@ -259,14 +259,20 @@ class WeatherPlot():
 
 	index_maxGust = self.minmax(windgust10m)[1]
 	maxGust = float(windgust10m[index_maxGust])
+	maxGustTime = timestamps[index_maxGust].strftime('%m-%d %H:%M')
 	maxGustDir = float(dataDict['windgustdir'][index_maxGust])
+
+	index_maxWind = self.minmax(windavg2m)[1]
+        maxWind = float(windavg2m[index_maxWind])
+        maxWindTime = timestamps[index_maxWind].strftime('%m-%d %H:%M')
+        maxWindDir = float(dataDict['winddir'][index_maxWind])
 
         currentWind = float(windavg2m[0])
 	currentGust = float(windgust10m[0])
 	currentDir = float(dataDict['winddir'][0])
 	currentGustDir = float(dataDict['windgustdir'][0])
 
-	minmaxText = timestamps[0].strftime('%Y%m%d %H:%M:%S')+" || Current: %.1f from %.0f \nCurrent Gust: %.1f from %.0f || Max Gust: %.1f from %.0f" % (currentWind, currentDir, currentGust, currentGustDir, maxGust, maxGustDir)
+	minmaxText = timestamps[0].strftime('%Y%m%d %H:%M:%S')+" || Current Wind: %.1f from %.0f || Current Gust: %.1f from %.0f \nMax Wind: %.1f at %s || Max Gust: %.1f at %s" % (currentWind, currentDir, currentGust, currentGustDir, maxWind, maxWindTime, maxGust, maxGustTime)
         fig.text(0.05, -0.06, minmaxText)
 
 	majorFormatter = mpl.dates.DateFormatter('%m-%d %H:%M')
@@ -296,7 +302,7 @@ class WeatherPlot():
         #ax.set_xlabel('Time [hours]')
         ax.set_title('Temperature Data')
 
-        ax.plot(timestamps, dewpoints, 'm-', label='Dewpoint [F]')
+        ax.plot(timestamps, dewpoints, 'y-', label='Dewpoint [F]')
         ax.plot(timestamps, tempfs, 'c-', label='Temp [F]')
 
 	'''
@@ -320,7 +326,7 @@ class WeatherPlot():
 	minTimeStr = minTime.strftime('%m-%d %H:%M')
 	maxTimeStr = maxTime.strftime('%m-%d %H:%M')
 	currentTemp = float(tempfs[0])
-	minmaxText = timestamps[0].strftime('%Y%m%d %H:%M:%S')+" || Current: %.1f \nLow: %.1f at %s || High: %.1f at %s" % (currentTemp, minTemp, minTimeStr, maxTemp, maxTimeStr)
+	minmaxText = timestamps[0].strftime('%Y%m%d %H:%M:%S')+" || Current Temp: %.1f || Current Dewpoint: %.1f \nLow: %.1f at %s || High: %.1f at %s" % (currentTemp, float(dewpoints[0]), minTemp, minTimeStr, maxTemp, maxTimeStr)
 	fig.text(0.05, -0.06, minmaxText)
         majorFormatter = mpl.dates.DateFormatter('%m-%d %H:%M')
         ax.xaxis.set_major_formatter(majorFormatter)
