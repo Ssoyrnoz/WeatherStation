@@ -1,6 +1,17 @@
 var fileDisplayArea = document.getElementById("dataDump");
-var sortedDat = document.getElementById("sortedDat");
 var fileText;
+
+var myVar = setInterval(myTimer, 30000);
+
+function myTimer()
+{
+    readTextFile("./live.txt");
+    sortData();
+    temp();
+    humidity();
+    pressure();
+    wind();    
+}
 
 function readTextFile(file)
 {
@@ -21,10 +32,10 @@ function readTextFile(file)
     }
     rawFile.send(null);
 }
-readTextFile("./live.txt");
 
-function sortData(rawData)
+function sortData()
 {
+    var sortedDat = document.getElementById("sortedDat");
     sortedDat.innerText = fileText;
     sortedDat.style.color = "red";
 
