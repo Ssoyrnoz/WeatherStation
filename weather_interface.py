@@ -118,14 +118,14 @@ class WeatherInterface():
             try:
                 sortedDat = self.sortOutput(timedDat)
 		Tdp = self.dewPoint(sortedDat['humidity'], sortedDat['tempf'])
-		outDat = timedDat+',dewpoint=%.2f'%Tdp
-		sortedDat['dewpoint'] = str(Tdp).strip('\n')
+		outDat = timedDat+',dewpoint=%.1f'%Tdp
+		sortedDat['dewpoint'] = "%.1f"%(Tdp)
                 #print len(sortedDat)
 		#print sortedDat
 		if len(sortedDat) == self.dictlength:
                     try:
 			self.serOut(outDat, self.logfile)
-			liveOut = open(str(os.getcwd())+'/live.txt', 'w')
+			liveOut = open(str(os.getcwd())+'/live_raw.txt', 'w')
 			liveOut.write(outDat)
 			liveOut.close()
                         nap = 10
