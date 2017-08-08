@@ -1,16 +1,16 @@
 var fileDisplayArea = document.getElementById("dataDump");
-var fileText;
+var fileText = "";
+var dataArr = [];
 
-var myVar = setInterval(myTimer, 30000);
-
-function myTimer()
+function pageTimer()
 {
-    readTextFile("./live.txt");
-    sortData();
-    temp();
-    humidity();
-    pressure();
-    wind();    
+    var dataString = readTextFile("./live.txt");
+    dataArr = sortData(dataString);
+    temp(dataArr);
+    humidity(dataArr);
+    pressure(dataArr);
+    wind(dataArr);
+    var timer = setInterval(pageTimer, 15000);
 }
 
 function readTextFile(file)
@@ -23,27 +23,25 @@ function readTextFile(file)
         {
             if(rawFile.status === 200 || rawFile.status == 0)
             {
-                allText = rawFile.responseText;
-        	fileText = alltext
-	        fileDisplayArea.innerText = allText;
-		fileDisplayArea.style.color = "orange";
+                //allText = rawFile.responseText;
+        	//fileText = alltext
+	        fileText = rawFile.responseText;
+		//fileDisplayArea.innerText = fileText;
+		//fileDisplayArea.style.color = "orange";
             }
         }
     }
     rawFile.send(null);
+    return fileText;
 }
 
-function sortData()
+function sortData(dataString)
 {
     var sortedDat = document.getElementById("sortedDat");
-    sortedDat.innerText = fileText;
-    sortedDat.style.color = "red";
+    var dataList = dataString.split(',');
+    sortedDat.innerText = typeof dataList;
 
-    var dataList = allText.split(",");
-    sortedDat.innerText = dataList.length+dataList;
-    sortedDat.style.color = "yellow";
-
-    var dataArr = [];
+    dataArr = [];
     for (var i = 0; i < dataList.length; i++) {
         sortedDat.innerText = dataList[i];
         sortedDat.style.color = "purple";
@@ -55,21 +53,14 @@ function sortData()
 
     var timestamp = dataArr["timestamp"];
 
-    var wind = dataArr["wind"];
-    var windDir = dataArr["windDir"];
-    var windGust = dataArr["windGust"];
-    var windGustDir = dataArr["windGustDir"];
-    var maxWind = dataArr["maxWind"];
-    var maxWindTime = dataArr["maxWindTime"];
-    var maxWindDir = dataArr["maxWindDir"];
-    var maxGust = dataArr["maxGust"];
-    var maxGustTime = dataArr["maxGustTime"];
+    document.getElementById("timestamp").innerHTML = "Data current as of: "+timestamp;
+    return dataArr;
+}
 
-    var humidity = dataArr["humidity"];
-    var maxHum = dataArr["maxHum"];
-    var maxHumTime = dataArr["maxHumTime"];
-    var minHum = dataArr["minHum"];
-    var minHumTime = dataArr["minHumTime"];
+function temp(dataArr)
+{
+    // Temperature and Dewpoint in [F]
+    tempDoc = document.getElementById("temp")
 
     var tempf = dataArr["tempf"];
     var dewpoint = dataArr["dewpoint"];
@@ -78,23 +69,9 @@ function sortData()
     var temp_min = dataArr["temp_min"];
     var temp_min_time = dataArr["temp_min_time"];
 
-    var pressure = dataArr["pressure"];
-    var maxPrs = dataArr["maxPrs"];
-    var maxPrsTime = dataArr["maxPrsTime"];
-    var minPrs = dataArr["minPrs"];
-    var minPrsTime = dataArr["minPrsTime"];
-
-    document.getElementById("timestamp").innerHTML = "Data current as of: "+timestamp;
-}
-
-function temp()
-{
-    // Temperature and Dewpoint in [F]
-    tempDoc = document.getElementById("temp")
-
-    if (temp < 32){
+    if (tempf < 32){
         tempDoc.style.color = "blue";}
-    else if (temp >= 32 && temp < 37){
+    else if (tempf >= 32 && tempf < 37){
 	tempDoc.style.color = "yellow";}
     else{
 	tempDoc.style.color = "green";}
@@ -103,7 +80,7 @@ function temp()
     document.getElementById("tempHigh").innerHTML = "  High Temp: "+temp_max+" at "+temp_max_time+
     "\r\n  Low Temp: "+temp_min+" at "+temp_min_time;
 
-    var deltaDew = (temp - dewpoint)
+    var deltaDew = (tempf - dewpoint)
     if (deltaDew < 5){
         document.getElementById("dewpoint").style.color = "red";}
     else if (deltaDew >= 5 && deltaDew < 10){
@@ -113,9 +90,16 @@ function temp()
     document.getElementById("dewpoint").innerHTML = "<a href='tempf.png'>Dew Point:</a> "+dewpoint+" [F]";
 }
 
-function humidity()
+function humidity(dataArr)
 {
     // Humidity in [%]
+
+    var humidity = dataArr["humidity"];
+    var maxHum = dataArr["maxHum"];
+    var maxHumTime = dataArr["maxHumTime"];
+    var minHum = dataArr["minHum"];
+    var minHumTime = dataArr["minHumTime"];
+
     if (humidity > 95){
         document.getElementById("humidity").style.color = "red";}
     else if (humidity > 80 && humidity <= 95){
@@ -127,9 +111,16 @@ function humidity()
     "\r\n  Min Humidity: "+minHum+" at "+minHumTime;
 }
 
-function pressure()
+function pressure(dataArr)
 {
     //  Pressure in [atm]
+
+    var pressure = dataArr["pressure"];
+    var maxPrs = dataArr["maxPrs"];
+    var maxPrsTime = dataArr["maxPrsTime"];
+    var minPrs = dataArr["minPrs"];
+    var minPrsTime = dataArr["minPrsTime"];
+
     prsDoc = document.getElementById("pressure")
     prsDoc.innerHTML = "<a href='pressure.png'>Atmospheric Pressure:</a> "+pressure+" [atm]";
     prsDoc.style.color = "green";
@@ -137,11 +128,22 @@ function pressure()
     "\r\n  Min Pressure: "+minPrs+" at "+minPrsTime;
 }
 
-function wind()
+function wind(dataArr)
 {
     // Wind and Wind Gust in [mph]
     windDoc = document.getElementById("wind");
     windMaxDoc = document.getElementById("windMax");
+
+    var wind = dataArr["wind"];
+    var windDir = dataArr["windDir"];
+    var windGust = dataArr["windGust"];
+    var windGustDir = dataArr["windGustDir"];
+    var maxWind = dataArr["maxWind"];
+    var maxWindTime = dataArr["maxWindTime"];
+    var maxWindDir = dataArr["maxWindDir"];
+    var maxGust = dataArr["maxGust"];
+    var maxGustTime = dataArr["maxGustTime"];
+
     if (wind > 30){
         windDoc.style.color = "red";}
     else if (wind > 20 && wind <= 30){
