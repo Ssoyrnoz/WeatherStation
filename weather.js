@@ -36,7 +36,7 @@ function pageClock()
     m = checkTime(m);
     s = checkTime(s);
     document.getElementById('time').innerHTML =
-    "Current time (UTC "+utc_sign+utc_offset+" Hr):  &nbsp; &nbsp; &nbsp;  "+y+"-"+mo+"-"+d+" "+h + ":" + m + ":" + s;
+    "Current time (UTC "+utc_sign+utc_offset+" Hr):  &nbsp; &nbsp; &nbsp; \r\n"+y+"-"+mo+"-"+d+" "+h + ":" + m + ":" + s;
 }
 function checkTime(i) {
     if (i < 10) {i = "0" + i};  // add zero in front of numbers < 10
@@ -99,9 +99,9 @@ function calculateLST() {
 
 
     var lst_clock = document.getElementById('lst_clock');
-    lst_clock.innerHTML = "Local Sidereal Time (LST): &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;         " +ch + ":"  + cmin  + ":" +csecs;
+    lst_clock.innerHTML = "Local Sidereal Time (LST): &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;        \r\n" +ch + ":"  + cmin  + ":" +csecs;
     var utc_clock = document.getElementById("utc_clock");
-    utc_clock.innerHTML = "Coordinated Universal Time (UTC):&nbsp;"+cuty+"-"+cutmo+"-"+cutd+" " +cuth + ":"  +cutm+":"+cuts;
+    utc_clock.innerHTML = "Coordinated Universal Time (UTC):&nbsp;\r\n"+cuty+"-"+cutmo+"-"+cutd+" " +cuth + ":"  +cutm+":"+cuts;
     pageClock();
     setTimeout("calculateLST()",997);
 }
@@ -176,7 +176,7 @@ function sortData(dataString)
 
     var timestamp = dataArr["timestamp"];
 
-    document.getElementById("timestamp").innerHTML = "Data current as of: \t\t  "+timestamp;
+    document.getElementById("timestamp").innerHTML = "Data current as of: \r\n"+timestamp;
     return dataArr;
 }
 
