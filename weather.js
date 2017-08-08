@@ -30,6 +30,7 @@ function pageClock()
     var d = today.getDate();
     if (d < 10){ d = "0"+d }
     var h = today.getHours();
+    if (h < 10){ h = "0"+h }
     var m = today.getMinutes();
     var s = today.getSeconds();
     m = checkTime(m);

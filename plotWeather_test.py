@@ -17,7 +17,7 @@ import traceback
 class WeatherPlot():
     def __init__(self):
 	self.wi = WeatherInterface()
-	self.plotTime = 24		#Length of data plot, in hours - DO NOT EXCEED 24
+	self.plotTime = 23		#Length of data plot, in hours - DO NOT EXCEED 24
 
 	self.sensorKeys = [
         'winddir_avg2m',
