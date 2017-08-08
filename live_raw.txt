@@ -1,1 +1,1 @@
-winddir=0,windspeedmph=2.9,windgustmph=12.8,windgustdir=0,windspdmph_avg2m=2.3,winddir_avg2m=26,windgustmph_10m=11.5,windgustdir_10m=315,humidity=37.8,tempf=87.4,rainin=30.93,dailyrainin=537.09,pressure=97729.00,light_lvl=3.07,timestamp=20170807-17:39:45,dewpoint=65.0
+winddir=0,windspeedmph=4.8,windgustmph=12.8,windgustdir=0,windspdmph_avg2m=3.8,winddir_avg2m=354,windgustmph_10m=9.6,windgustdir_10m=0,humidity=36.7,tempf=88.6,rainin=30.94,dailyrainin=562.63,pressure=97727.50,light_lvl=3.08,timestamp=20170807-18:29:18,dewpoint=65.8

@@ -17,7 +17,7 @@ import traceback
 class WeatherPlot():
     def __init__(self):
 	self.wi = WeatherInterface()
-	self.plotTime = 23		#Length of data plot, in hours - DO NOT EXCEED 23
+	self.plotTime = 24		#Length of data plot, in hours - DO NOT EXCEED 24
 
 	self.sensorKeys = [
         'winddir_avg2m',
@@ -38,6 +38,7 @@ class WeatherPlot():
         'windgustdir'
         ]
 
+	self.outDict = {}
 
 	self.date = datetime.datetime.now()
         self.logfile = '/logs/'+datetime.datetime.strftime(self.date, "%Y%m%d")+"-weather.txt"
@@ -116,8 +117,12 @@ class WeatherPlot():
 			del datalist[0]
 
 		# See if the time is past self.plotTime
-		timeCheck = (checktime - timeobj).seconds/(60*60)	# Hours
+		dayCheck = 0.0
+		if (checktime - timeobj).days >= 1:
+		    dayCheck = (checktime - timeobj).days * 24.0
+		timeCheck = ((checktime - timeobj).seconds/(60.0*60.0)) + dayCheck	# Hours
 		#print timeCheck
+
 
 		if timeCheck < self.plotTime and len(datalist) < 1:
 		    print "Opening new log"
@@ -164,6 +169,16 @@ class WeatherPlot():
 	pressure, timestamp = dataDict['pressure'], dataDict['timestamp']
 	pressure = self.convertPressure(pressure)
 
+        ind_min_prs, ind_max_prs = self.minmax(pressure)
+        min_prs, max_prs = float(pressure[ind_min_prs]), float(pressure[ind_max_prs])
+        min_prs_time, max_prs_time = timestamp[ind_min_prs], timestamp[ind_max_prs]
+
+	self.outDict["pressure"] = "%.5f"%pressure[0]
+	self.outDict["minPrs"] = "%.5f"%min_prs
+	self.outDict["minPrsTime"] = min_prs_time.strftime("%m-%d %H:%M")
+	self.outDict["maxPrs"] = "%.5f"%max_prs
+	self.outDict["maxPrsTime"] = max_prs_time.strftime("%m-%d %H:%M")
+
 	stp = 0.964739		#Calculated for elev = 990 ft
 
 	stpList = []
@@ -185,10 +200,6 @@ class WeatherPlot():
         #ax.set_axis_bgcolor('black')
         plt.gcf().autofmt_xdate()       #Make dates look pretty in plot
 
-	ind_min_prs, ind_max_prs = self.minmax(pressure)
-        min_prs, max_prs = float(pressure[ind_min_prs]), float(pressure[ind_max_prs])
-        min_prs_time, max_prs_time = timestamp[ind_min_prs], timestamp[ind_max_prs]
-
         minTimeStr = min_prs_time.strftime('%m-%d %H:%M')
         maxTimeStr = max_prs_time.strftime('%m-%d %H:%M')
         minmaxText = timestamp[0].strftime('%Y%m%d %H:%M:%S')+" || Current: %.5f \nLow: %.5f at %s || High: %.5f at %s" % (float(pressure[0]), min_prs, minTimeStr, max_prs, maxTimeStr)
@@ -204,6 +215,19 @@ class WeatherPlot():
     def plotHumidity(self, dataDict):
 	humidity, timestamp = dataDict['humidity'], dataDict['timestamp']
 
+        ind_min_hum, ind_max_hum = self.minmax(humidity)
+        min_hum, max_hum = float(humidity[ind_min_hum]), float(humidity[ind_max_hum])
+        min_hum_time, max_hum_time = timestamp[ind_min_hum], timestamp[ind_max_hum]
+
+        minTimeStr = min_hum_time.strftime('%m-%d %H:%M')
+        maxTimeStr = max_hum_time.strftime('%m-%d %H:%M')
+
+	self.outDict["humidity"] = humidity[0]
+	self.outDict["minHum"] = min_hum
+	self.outDict["minHumTime"] = minTimeStr
+	self.outDict["maxHum"] = max_hum
+	self.outDict["maxHumTime"] = maxTimeStr
+
         fig,ax=plt.subplots(1)
         fig.set_size_inches(8,4)
         ax.set_ylabel('Humidity [%]')
@@ -217,12 +241,6 @@ class WeatherPlot():
         #ax.set_axis_bgcolor('black')
         plt.gcf().autofmt_xdate()       #Make dates look pretty in plot
 
-	ind_min_hum, ind_max_hum = self.minmax(humidity)
-	min_hum, max_hum = float(humidity[ind_min_hum]), float(humidity[ind_max_hum])
-	min_hum_time, max_hum_time = timestamp[ind_min_hum], timestamp[ind_max_hum]
-
-	minTimeStr = min_hum_time.strftime('%m-%d %H:%M')
-        maxTimeStr = max_hum_time.strftime('%m-%d %H:%M')
         minmaxText = timestamp[0].strftime('%Y%m%d %H:%M:%S')+" || Current: %.1f \nLow: %.1f at %s || High: %.1f at %s" % (float(humidity[0]), min_hum, minTimeStr, max_hum, maxTimeStr)
         fig.text(0.05, -0.06, minmaxText)
 
@@ -237,7 +255,36 @@ class WeatherPlot():
 
     def plotWind(self, dataDict):
 
-        windavg2m, windgust10m, timestamps = dataDict['windspdmph_avg2m'], dataDict['windgustmph_10m'], dataDict['timestamp']
+        windavg2m, windgust10mL, timestamps = dataDict['windspdmph_avg2m'], dataDict['windgustmph_10m'], dataDict['timestamp']
+
+	self.outDict["timestamp"] = timestamps[0].strftime("%Y%m%d %H:%M:%S")
+
+	windgust10m = []
+	windgust10m = [float(i) for i in windgust10mL]
+        index_maxGust = self.minmax(windgust10m)[1]
+	maxGust = max(windgust10m)
+	self.outDict["maxGust"] = maxGust
+        maxGustTime = timestamps[index_maxGust].strftime('%m-%d %H:%M')
+        self.outDict["maxGustTime"] = maxGustTime
+	maxGustDir = float(dataDict['windgustdir'][index_maxGust])
+
+        index_maxWind = self.minmax(windavg2m)[1]
+        maxWind = float(windavg2m[index_maxWind])
+        self.outDict["maxWind"] = maxWind
+	maxWindTime = timestamps[index_maxWind].strftime('%m-%d %H:%M')
+        self.outDict["maxWindTime"] = maxWindTime
+	maxWindDir = float(dataDict['winddir'][index_maxWind])
+	self.outDict["maxWindDir"] = maxWindDir
+
+        currentWind = float(windavg2m[0])
+        self.outDict["wind"] = currentWind
+	currentGust = float(windgust10m[0])
+	self.outDict["windGust"] = currentGust
+        currentDir = float(dataDict['winddir'][0])
+        self.outDict["windDir"] = currentDir
+	currentGustDir = float(dataDict['windgustdir'][0])
+	self.outDict["windGustDir"] = currentGustDir
+
 
         fig,ax=plt.subplots(1)
         fig.set_size_inches(8,4)
@@ -246,31 +293,6 @@ class WeatherPlot():
 
         ax.plot(timestamps, windavg2m, 'y-', label='Avg Wind (2 min)')
         ax.plot(timestamps, windgust10m, 'c-', label='Wind Gust (10 min)')
-
-	'''
-	ax.annotate('Max Gust = %.1f [MPH]\n%s' % (windgust10m[index_gust_max], gusttimestamps[index_gust_max].strftime('%H:%M')),
-	xy=(gusttimestamps[index_gust_max], windgust10m[index_gust_max]),
-	xytext=(gusttimestamps[index_gust_max], windgust10m[index_gust_max]*0.7), #, textcoords='offset pixels',
-	bbox = dict(boxstyle='round', fc='black', fill=False),
-        horizontalalignment='center',
-        verticalalignment='bottom',
-	arrowprops=dict(facecolor='white', shrink=0.1, fill=True))
-        '''
-
-	index_maxGust = self.minmax(windgust10m)[1]
-	maxGust = float(windgust10m[index_maxGust])
-	maxGustTime = timestamps[index_maxGust].strftime('%m-%d %H:%M')
-	maxGustDir = float(dataDict['windgustdir'][index_maxGust])
-
-	index_maxWind = self.minmax(windavg2m)[1]
-        maxWind = float(windavg2m[index_maxWind])
-        maxWindTime = timestamps[index_maxWind].strftime('%m-%d %H:%M')
-        maxWindDir = float(dataDict['winddir'][index_maxWind])
-
-        currentWind = float(windavg2m[0])
-	currentGust = float(windgust10m[0])
-	currentDir = float(dataDict['winddir'][0])
-	currentGustDir = float(dataDict['windgustdir'][0])
 
 	minmaxText = timestamps[0].strftime('%Y%m%d %H:%M:%S')+" || Current Wind: %.1f from %.0f || Current Gust: %.1f from %.0f \nMax Wind: %.1f at %s || Max Gust: %.1f at %s" % (currentWind, currentDir, currentGust, currentGustDir, maxWind, maxWindTime, maxGust, maxGustTime)
         fig.text(0.05, -0.06, minmaxText)
@@ -295,6 +317,16 @@ class WeatherPlot():
 	index_temp_min, index_temp_max = self.minmax(tempfs)
 	minTemp, maxTemp = float(tempfs[index_temp_min]), float(tempfs[index_temp_max])
 	minTime, maxTime = timestamps[index_temp_min], timestamps[index_temp_max]
+
+        minTimeStr = minTime.strftime('%m-%d %H:%M')
+        maxTimeStr = maxTime.strftime('%m-%d %H:%M')
+
+	self.outDict["tempf"] = tempfs[0]
+	self.outDict["dewpoint"] = dewpoints[0]
+	self.outDict["temp_max"] = maxTemp
+	self.outDict["temp_max_time"] = maxTimeStr
+	self.outDict["temp_min"] = minTemp
+	self.outDict["temp_min_time"] = minTimeStr
 
         fig,ax=plt.subplots(1)
         fig.set_size_inches(8,4)
@@ -323,8 +355,6 @@ class WeatherPlot():
         arrowprops=dict(facecolor='white', shrink=0.2, fill=True))
 	'''
 
-	minTimeStr = minTime.strftime('%m-%d %H:%M')
-	maxTimeStr = maxTime.strftime('%m-%d %H:%M')
 	currentTemp = float(tempfs[0])
 	minmaxText = timestamps[0].strftime('%Y%m%d %H:%M:%S')+" || Current Temp: %.1f || Current Dewpoint: %.1f \nLow: %.1f at %s || High: %.1f at %s" % (currentTemp, float(dewpoints[0]), minTemp, minTimeStr, maxTemp, maxTimeStr)
 	fig.text(0.05, -0.06, minmaxText)
@@ -341,6 +371,18 @@ class WeatherPlot():
         plt.close('all')
 	plt.clf()
         return
+
+    def liveDataOut(self):
+	outString = ""
+	for key, value in self.outDict.iteritems():
+	    outString = outString + str(key) + "=" + str(value) + ","
+	outString = outString[:-1]
+	#print outString
+	directory = str(os.getcwd())+"/live.txt"
+        f_out = open(directory,'w')
+        f_out.write(outString)
+        f_out.close()
+	return
 
     def upload(self, sensorname):
         image = Image.open(os.getcwd()+'/'+sensorname+'.png')
@@ -395,8 +437,9 @@ class WeatherPlot():
 	    self.upload('humidity')
 	except Exception as e:
 	    print 'Exception:'+str(e)
-
-	shutil.copy(os.getcwd()+'/live.txt', '/var/www/cgi-bin/live.txt')
+	self.liveDataOut()
+	shutil.copy(os.getcwd()+'/live.txt', '/var/www/html/live.txt')
+	self.outDict = {}
 
 	self.checkDay(self.logfile)
 	return currentTime

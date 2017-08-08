@@ -38,6 +38,18 @@ class WeatherPlot():
         'windgustdir'
         ]
 
+	self.windOffset = 0.0
+	self.windDirDict = {
+	'N': [0.0, 45.0],
+	'NE': [45.0, 90.0],
+	'E': [90.0, 135.0],
+	'SE': [135.0, 180.0],
+	'S': [180.0, 225.0],
+	'SW': [225.0, 270.0],
+	'W': [270.0, 315.0],
+	'NW': [315.0, 360.0]
+	}
+
 	self.outDict = {}
 
 	self.date = datetime.datetime.now()
@@ -234,6 +246,7 @@ class WeatherPlot():
         ax.set_title('Humidity')
 
         ax.plot(timestamp, humidity, 'm-')
+
         majorFormatter = mpl.dates.DateFormatter('%m-%d %H:%M')
         ax.xaxis.set_major_formatter(majorFormatter)
         ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
@@ -251,7 +264,11 @@ class WeatherPlot():
         plt.close('all')
         return
 
-
+    def windDirection(self, degree):
+	windDirection = (float(degree) + self.windOffset) % 360.0
+	for key, list in self.windDirDict.iteritems():
+	    if windDirection >= list[0] and windDirection < list[1]:
+	        return key
 
     def plotWind(self, dataDict):
 
@@ -266,23 +283,23 @@ class WeatherPlot():
 	self.outDict["maxGust"] = maxGust
         maxGustTime = timestamps[index_maxGust].strftime('%m-%d %H:%M')
         self.outDict["maxGustTime"] = maxGustTime
-	maxGustDir = float(dataDict['windgustdir'][index_maxGust])
+	maxGustDir = self.windDirection(float(dataDict['windgustdir'][index_maxGust]))
 
         index_maxWind = self.minmax(windavg2m)[1]
         maxWind = float(windavg2m[index_maxWind])
         self.outDict["maxWind"] = maxWind
 	maxWindTime = timestamps[index_maxWind].strftime('%m-%d %H:%M')
         self.outDict["maxWindTime"] = maxWindTime
-	maxWindDir = float(dataDict['winddir'][index_maxWind])
+	maxWindDir = self.windDirection(float(dataDict['winddir'][index_maxWind]))
 	self.outDict["maxWindDir"] = maxWindDir
 
         currentWind = float(windavg2m[0])
         self.outDict["wind"] = currentWind
 	currentGust = float(windgust10m[0])
 	self.outDict["windGust"] = currentGust
-        currentDir = float(dataDict['winddir'][0])
+        currentDir = self.windDirection(float(dataDict['winddir'][0]))
         self.outDict["windDir"] = currentDir
-	currentGustDir = float(dataDict['windgustdir'][0])
+	currentGustDir = self.windDirection(float(dataDict['windgustdir'][0]))
 	self.outDict["windGustDir"] = currentGustDir
 
 
@@ -294,7 +311,7 @@ class WeatherPlot():
         ax.plot(timestamps, windavg2m, 'y-', label='Avg Wind (2 min)')
         ax.plot(timestamps, windgust10m, 'c-', label='Wind Gust (10 min)')
 
-	minmaxText = timestamps[0].strftime('%Y%m%d %H:%M:%S')+" || Current Wind: %.1f from %.0f || Current Gust: %.1f from %.0f \nMax Wind: %.1f at %s || Max Gust: %.1f at %s" % (currentWind, currentDir, currentGust, currentGustDir, maxWind, maxWindTime, maxGust, maxGustTime)
+	minmaxText = timestamps[0].strftime('%Y%m%d %H:%M:%S')+" || Current Wind: %.1f from %s || Current Gust: %.1f from %s \nMax Wind: %.1f at %s || Max Gust: %.1f at %s" % (currentWind, currentDir, currentGust, currentGustDir, maxWind, maxWindTime, maxGust, maxGustTime)
         fig.text(0.05, -0.06, minmaxText)
 
 	majorFormatter = mpl.dates.DateFormatter('%m-%d %H:%M')
@@ -336,24 +353,6 @@ class WeatherPlot():
 
         ax.plot(timestamps, dewpoints, 'y-', label='Dewpoint [F]')
         ax.plot(timestamps, tempfs, 'c-', label='Temp [F]')
-
-	'''
-        ax.annotate('Max Temp = %.1f [F]\n%s' % (tempfs[index_temp_max], timestamps[index_temp_max].strftime('%H:%M')),
-        xy=(timestamps[index_temp_max], tempfs[index_temp_max]),
-        xytext=(timestamps[index_temp_max], tempfs[index_temp_max]*0.8), #textcoords='offset pixels',
-	bbox = dict(boxstyle='round', fc='black', fill=False),
-        horizontalalignment='center',
-        verticalalignment='bottom',
-        arrowprops=dict(facecolor='white', shrink=0.2, fill=True))
-
-	ax.annotate('Min Temp = %.1f [F]\n%s' % (tempfs[index_temp_min], timestamps[index_temp_min].strftime('%H:%M')),
-        xy=(timestamps[index_temp_min], tempfs[index_temp_min]),
-        xytext=(timestamps[index_temp_min], tempfs[index_temp_min]*1.2), #textcoords='offset pixels',
-	bbox = dict(boxstyle='round', fc='black', fill=False),
-        horizontalalignment='right',
-        verticalalignment='bottom',
-        arrowprops=dict(facecolor='white', shrink=0.2, fill=True))
-	'''
 
 	currentTemp = float(tempfs[0])
 	minmaxText = timestamps[0].strftime('%Y%m%d %H:%M:%S')+" || Current Temp: %.1f || Current Dewpoint: %.1f \nLow: %.1f at %s || High: %.1f at %s" % (currentTemp, float(dewpoints[0]), minTemp, minTimeStr, maxTemp, maxTimeStr)
