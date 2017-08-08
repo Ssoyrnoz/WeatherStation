@@ -274,7 +274,7 @@ class WeatherPlot():
 
         windavg2m, windgust10mL, timestamps = dataDict['windspdmph_avg2m'], dataDict['windgustmph_10m'], dataDict['timestamp']
 
-	self.outDict["timestamp"] = timestamps[0].strftime("%Y%m%d %H:%M:%S")
+	self.outDict["timestamp"] = timestamps[0].strftime("%Y-%m-%d %H:%M:%S")
 
 	windgust10m = []
 	windgust10m = [float(i) for i in windgust10mL]
@@ -329,14 +329,20 @@ class WeatherPlot():
 	return
 
     def plotTemp(self, dataDict):
-        tempfs, timestamps, dewpoints = dataDict['tempf'], dataDict['timestamp'], dataDict['dewpoint']
+        tempf, timestamps, dewpoint = dataDict['tempf'], dataDict['timestamp'], dataDict['dewpoint']
 
-	index_temp_min, index_temp_max = self.minmax(tempfs)
-	minTemp, maxTemp = float(tempfs[index_temp_min]), float(tempfs[index_temp_max])
+	index_temp_min, index_temp_max = self.minmax(tempf)
+	minTemp, maxTemp = float(tempf[index_temp_min]), float(tempf[index_temp_max])
 	minTime, maxTime = timestamps[index_temp_min], timestamps[index_temp_max]
 
         minTimeStr = minTime.strftime('%m-%d %H:%M')
         maxTimeStr = maxTime.strftime('%m-%d %H:%M')
+
+        tempfs = []
+        tempfs = [float(i) for i in tempf]
+
+        dewpoints = []
+        dewpoints = [float(i) for i in dewpoint]
 
 	self.outDict["tempf"] = tempfs[0]
 	self.outDict["dewpoint"] = dewpoints[0]
@@ -354,8 +360,17 @@ class WeatherPlot():
         ax.plot(timestamps, dewpoints, 'y-', label='Dewpoint [F]')
         ax.plot(timestamps, tempfs, 'c-', label='Temp [F]')
 
-	currentTemp = float(tempfs[0])
-	minmaxText = timestamps[0].strftime('%Y%m%d %H:%M:%S')+" || Current Temp: %.1f || Current Dewpoint: %.1f \nLow: %.1f at %s || High: %.1f at %s" % (currentTemp, float(dewpoints[0]), minTemp, minTimeStr, maxTemp, maxTimeStr)
+	'''
+	for i in range(len(tempfs)):
+	    deltaDew = tempfs[i] - dewpoints[i]
+	    if deltaDew < 5.0:
+		ax.plot((timestamps[i], tempfs[i]), (timestamps[i], dewpoints[i]), 'b-')
+	    elif deltaDew < 10.0 and deltaDew >= 5.0:
+                ax.plot((timestamps[i], tempfs[i]), (timestamps[i], dewpoints[i]), 'r-')
+	'''
+
+	currentTemp = tempfs[0]
+	minmaxText = timestamps[0].strftime('%Y%m%d %H:%M:%S')+" || Current Temp: %.1f || Current Dewpoint: %.1f \nLow: %.1f at %s || High: %.1f at %s" % (currentTemp, dewpoints[0], minTemp, minTimeStr, maxTemp, maxTimeStr)
 	fig.text(0.05, -0.06, minmaxText)
         majorFormatter = mpl.dates.DateFormatter('%m-%d %H:%M')
         ax.xaxis.set_major_formatter(majorFormatter)
@@ -436,6 +451,7 @@ class WeatherPlot():
 	    self.upload('humidity')
 	except Exception as e:
 	    print 'Exception:'+str(e)
+	    traceback.print_exc()
 	self.liveDataOut()
 	shutil.copy(os.getcwd()+'/live.txt', '/var/www/html/live.txt')
 	self.outDict = {}

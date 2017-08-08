@@ -14,8 +14,13 @@ p {
     margin-bottom: -0.5em;
     margin-left: 0;
     margin-right: 0;
-    color:darkviolet
+    color:white
 }
+
+a {
+    color:white
+}
+
 </style>
 
 <title>Hermitage Weather</title>
@@ -24,14 +29,17 @@ p {
 <script src="weather.js"></script>
 
 
-<body onload="pageTimer(); pageClock();" bgcolor="black">
+<body onload="pageTimer(); pageClock(); calculateLST();" bgcolor="black">
     <h2>
-        <center><font color="blue">Hermitage Weather Station - Release 0.3</font></center>
+        <center><font color="darkviolet">Hermitage Weather Station - Release 0.3</font></center>
     </h2>
     <font color="white">
     <pre id="dataDump"><pre>
     <p id="sortedDat">Sorted data goes here</p>
     <p id="time">Current time: Unknown</p>
+    <p id="utc_clock">Current UTC: Unknown</p>
+    <p id="lst_clock">Current LST: Unknown</p>
+    <hr>
     <p id="timestamp">Data current as of: Unknown</p>
     <table style="width:100%" border="0" cellpadding=0 cellspacing=20>
     <tr>
