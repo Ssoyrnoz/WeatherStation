@@ -24,13 +24,14 @@ p {
 <script src="weather.js"></script>
 
 
-<body onload="pageTimer()" bgcolor="black">
+<body onload="pageTimer(); pageClock();" bgcolor="black">
     <h2>
         <center><font color="blue">Hermitage Weather Station - Release 0.3</font></center>
     </h2>
     <font color="white">
     <pre id="dataDump"><pre>
     <p id="sortedDat">Sorted data goes here</p>
+    <p id="time">Current time: Unknown</p>
     <p id="timestamp">Data current as of: Unknown</p>
     <table style="width:100%" border="0" cellpadding=0 cellspacing=20>
     <tr>
@@ -64,7 +65,7 @@ p {
     </table>
 <br><Br>
 <center>
-Image will auto-refresh every 30 seconds<br><br>
+Data will auto-refresh every 30 seconds<br><br>
 </center>
 </font>
 </body>
