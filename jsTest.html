@@ -26,7 +26,14 @@ a {
 <title>Hermitage Weather</title>
 </head>
 
-<script src="weather.js"></script>
+<script>
+    var scrptE = document.createElement("script");
+    scrptE.setAttribute("type", "text/javascript");
+    scrptE.setAttribute("language", "JavaScript");
+    scrptE.setAttribute("src", "weather.js?" + (Date.now() % 10000));
+    var head = document.getElementsByTagName("head")[0];
+    head.appendChild(scrptE);
+</script>
 
 
 <body onload="pageTimer(); pageClock(); calculateLST();" bgcolor="black">
