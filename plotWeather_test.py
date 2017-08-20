@@ -364,9 +364,9 @@ class WeatherPlot():
 	for i in range(len(tempfs)):
 	    deltaDew = tempfs[i] - dewpoints[i]
 	    if deltaDew < 5.0:
-		ax.plot((timestamps[i], tempfs[i]), (timestamps[i], dewpoints[i]), 'b-')
+		ax.plot(timestamps[i], dewpoints[i], 'b-')
 	    elif deltaDew < 10.0 and deltaDew >= 5.0:
-                ax.plot((timestamps[i], tempfs[i]), (timestamps[i], dewpoints[i]), 'r-')
+                ax.plot(timestamps[i], dewpoints[i], 'r-')
 	'''
 
 	currentTemp = tempfs[0]
