@@ -55,6 +55,7 @@ class WeatherPlot():
 	self.date = datetime.datetime.now()
         self.logfile = '/logs/'+datetime.datetime.strftime(self.date, "%Y%m%d")+"-weather.txt"
         self.datafile = str(os.getcwd())+self.logfile     #Location of data file
+	self.plotFolder = str(os.getcwd())+"/plots"
 
 	self.pressure = 'atm'
 
@@ -220,7 +221,7 @@ class WeatherPlot():
         plt.grid(True)
         fig.tight_layout()
         #plt.show()
-        plt.savefig(os.getcwd()+'/pressure.png', bbox_inches='tight')
+        plt.savefig(self.plotFolder+'/pressure.png', bbox_inches='tight')
         plt.close('all')
         return
 
@@ -260,7 +261,7 @@ class WeatherPlot():
         plt.grid(True)
         fig.tight_layout()
         #plt.show()
-        plt.savefig(os.getcwd()+'/humidity.png', bbox_inches='tight')
+        plt.savefig(self.plotFolder+'/humidity.png', bbox_inches='tight')
         plt.close('all')
         return
 
@@ -323,7 +324,7 @@ class WeatherPlot():
         plt.gcf().autofmt_xdate()       #Make dates look pretty in plot
         plt.grid(True)
         fig.tight_layout()
-        plt.savefig(os.getcwd()+'/wind.png', bbox_inches='tight')
+        plt.savefig(self.plotFolder+'/wind.png', bbox_inches='tight')
 	plt.close('all')
 	plt.clf()
 	return
@@ -381,7 +382,7 @@ class WeatherPlot():
         plt.gcf().autofmt_xdate()       #Make dates look pretty in plot
         plt.grid(True)
         fig.tight_layout()
-        plt.savefig(os.getcwd()+'/tempf.png', bbox_inches='tight')
+        plt.savefig(self.plotFolder+'/tempf.png', bbox_inches='tight')
         plt.close('all')
 	plt.clf()
         return
@@ -399,19 +400,19 @@ class WeatherPlot():
 	return
 
     def upload(self, sensorname):
-        image = Image.open(os.getcwd()+'/'+sensorname+'.png')
+        image = Image.open(self.plotFolder+'/'+sensorname+'.png')
         if image.mode == 'RGBA':
             r,g,b,a = image.split()
             rgb_image = Image.merge('RGB', (r,g,b))
             inverted_image = PIL.ImageOps.invert(rgb_image)
             r2,g2,b2 = inverted_image.split()
             final_transparent_image = Image.merge('RGBA', (r2,g2,b2,a))
-            final_transparent_image.save(os.getcwd()+'/'+sensorname+'.png')
+            final_transparent_image.save(self.plotFolder+'/'+sensorname+'.png')
         else:
             inverted_image = PIL.ImageOps.invert(image)
-            inverted_image.save(os.getcwd()+'/'+sensorname+'.png')
+            inverted_image.save(self.plotFolder+'/'+sensorname+'.png')
 
-        shutil.copy(os.getcwd()+'/'+sensorname+'.png', '/var/www/html/'+sensorname+'.png')
+        shutil.copy(self.plotFolder+'/'+sensorname+'.png', '/var/www/html/'+sensorname+'.png')
         print 'copied '+sensorname+'.png'
 
     def checkDay(self, filename):
