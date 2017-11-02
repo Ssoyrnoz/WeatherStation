@@ -17,7 +17,7 @@ import traceback
 class WeatherPlot():
     def __init__(self):
 	self.wi = WeatherInterface()
-	self.plotTime = 23		#Length of data plot, in hours - DO NOT EXCEED 24
+	self.plotTime = 24		#Length of data plot, in hours - DO NOT EXCEED 24
 
 	self.sensorKeys = [
         'winddir_avg2m',
@@ -38,24 +38,11 @@ class WeatherPlot():
         'windgustdir'
         ]
 
-	self.windOffset = 0.0
-	self.windDirDict = {
-	'N': [0.0, 45.0],
-	'NE': [45.0, 90.0],
-	'E': [90.0, 135.0],
-	'SE': [135.0, 180.0],
-	'S': [180.0, 225.0],
-	'SW': [225.0, 270.0],
-	'W': [270.0, 315.0],
-	'NW': [315.0, 360.0]
-	}
-
 	self.outDict = {}
 
 	self.date = datetime.datetime.now()
-        self.logfile = '/home/matt/WeatherStation/logs/'+datetime.datetime.strftime(self.date, "%Y%m%d")+"-weather.txt"
-        self.datafile = self.logfile     #Location of data file
-	self.plotFolder = "/home/matt/WeatherStation/plots"
+        self.logfile = '/logs/'+datetime.datetime.strftime(self.date, "%Y%m%d")+"-weather.txt"
+        self.datafile = str(os.getcwd())+self.logfile     #Location of data file
 
 	self.pressure = 'atm'
 
@@ -74,7 +61,7 @@ class WeatherPlot():
         data = {}
 
 	datalist = []
-	tempFile = open('/home/matt/WeatherStation/logs/'+logDate+"-weather.txt",'r')
+	tempFile = open(str(os.getcwd())+'/logs/'+logDate+"-weather.txt",'r')
         templist = tempFile.readlines()
         tempFile.close()
         templist.reverse()
@@ -116,7 +103,7 @@ class WeatherPlot():
 			del datalist[0]
 			continue
 		    if key not in self.sensorKeys:
-			#print "Deleting "+str(timeobj)+" for incorrect key: "+str(key)
+			print "Deleting "+str(timeobj)+" for incorrect key: "+str(key)
 			del datalist[0]
 			linedic = {}
 			continue
@@ -143,7 +130,7 @@ class WeatherPlot():
 		    logDateParse = datetime.datetime.strptime(logDate, "%Y%m%d")
 		    print "logDateParse: "+logDateParse.strftime("%Y%m%d")
 		    logDate = logDateParse - datetime.timedelta(days=1)
-		    tempFile = open('/home/matt/WeatherStation/logs/'+logDate.strftime("%Y%m%d")+"-weather.txt",'r')
+		    tempFile = open(str(os.getcwd())+'/logs/'+logDate.strftime("%Y%m%d")+"-weather.txt",'r')
 		    print "new log file: logs/"+logDate.strftime("%Y%m%d")+"-weather.txt"
 		    templist = tempFile.readlines()
 		    tempFile.close()
@@ -221,7 +208,7 @@ class WeatherPlot():
         plt.grid(True)
         fig.tight_layout()
         #plt.show()
-        plt.savefig(self.plotFolder+'/pressure.png', bbox_inches='tight')
+        plt.savefig(os.getcwd()+'/pressure.png', bbox_inches='tight')
         plt.close('all')
         return
 
@@ -247,7 +234,6 @@ class WeatherPlot():
         ax.set_title('Humidity')
 
         ax.plot(timestamp, humidity, 'm-')
-
         majorFormatter = mpl.dates.DateFormatter('%m-%d %H:%M')
         ax.xaxis.set_major_formatter(majorFormatter)
         ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
@@ -261,21 +247,17 @@ class WeatherPlot():
         plt.grid(True)
         fig.tight_layout()
         #plt.show()
-        plt.savefig(self.plotFolder+'/humidity.png', bbox_inches='tight')
+        plt.savefig(os.getcwd()+'/humidity.png', bbox_inches='tight')
         plt.close('all')
         return
 
-    def windDirection(self, degree):
-	windDirection = (float(degree) + self.windOffset) % 360.0
-	for key, list in self.windDirDict.iteritems():
-	    if windDirection >= list[0] and windDirection < list[1]:
-	        return key
+
 
     def plotWind(self, dataDict):
 
         windavg2m, windgust10mL, timestamps = dataDict['windspdmph_avg2m'], dataDict['windgustmph_10m'], dataDict['timestamp']
 
-	self.outDict["timestamp"] = timestamps[0].strftime("%Y-%m-%d %H:%M:%S")
+	self.outDict["timestamp"] = timestamps[0].strftime("%Y%m%d %H:%M:%S")
 
 	windgust10m = []
 	windgust10m = [float(i) for i in windgust10mL]
@@ -284,23 +266,23 @@ class WeatherPlot():
 	self.outDict["maxGust"] = maxGust
         maxGustTime = timestamps[index_maxGust].strftime('%m-%d %H:%M')
         self.outDict["maxGustTime"] = maxGustTime
-	maxGustDir = self.windDirection(float(dataDict['windgustdir'][index_maxGust]))
+	maxGustDir = float(dataDict['windgustdir'][index_maxGust])
 
         index_maxWind = self.minmax(windavg2m)[1]
         maxWind = float(windavg2m[index_maxWind])
         self.outDict["maxWind"] = maxWind
 	maxWindTime = timestamps[index_maxWind].strftime('%m-%d %H:%M')
         self.outDict["maxWindTime"] = maxWindTime
-	maxWindDir = self.windDirection(float(dataDict['winddir'][index_maxWind]))
+	maxWindDir = float(dataDict['winddir'][index_maxWind])
 	self.outDict["maxWindDir"] = maxWindDir
 
         currentWind = float(windavg2m[0])
         self.outDict["wind"] = currentWind
 	currentGust = float(windgust10m[0])
 	self.outDict["windGust"] = currentGust
-        currentDir = self.windDirection(float(dataDict['winddir'][0]))
+        currentDir = float(dataDict['winddir'][0])
         self.outDict["windDir"] = currentDir
-	currentGustDir = self.windDirection(float(dataDict['windgustdir'][0]))
+	currentGustDir = float(dataDict['windgustdir'][0])
 	self.outDict["windGustDir"] = currentGustDir
 
 
@@ -312,7 +294,7 @@ class WeatherPlot():
         ax.plot(timestamps, windavg2m, 'y-', label='Avg Wind (2 min)')
         ax.plot(timestamps, windgust10m, 'c-', label='Wind Gust (10 min)')
 
-	minmaxText = timestamps[0].strftime('%Y%m%d %H:%M:%S')+" || Current Wind: %.1f from %s || Current Gust: %.1f from %s \nMax Wind: %.1f at %s || Max Gust: %.1f at %s" % (currentWind, currentDir, currentGust, currentGustDir, maxWind, maxWindTime, maxGust, maxGustTime)
+	minmaxText = timestamps[0].strftime('%Y%m%d %H:%M:%S')+" || Current Wind: %.1f from %.0f || Current Gust: %.1f from %.0f \nMax Wind: %.1f at %s || Max Gust: %.1f at %s" % (currentWind, currentDir, currentGust, currentGustDir, maxWind, maxWindTime, maxGust, maxGustTime)
         fig.text(0.05, -0.06, minmaxText)
 
 	majorFormatter = mpl.dates.DateFormatter('%m-%d %H:%M')
@@ -324,26 +306,20 @@ class WeatherPlot():
         plt.gcf().autofmt_xdate()       #Make dates look pretty in plot
         plt.grid(True)
         fig.tight_layout()
-        plt.savefig(self.plotFolder+'/wind.png', bbox_inches='tight')
+        plt.savefig(os.getcwd()+'/wind.png', bbox_inches='tight')
 	plt.close('all')
 	plt.clf()
 	return
 
     def plotTemp(self, dataDict):
-        tempf, timestamps, dewpoint = dataDict['tempf'], dataDict['timestamp'], dataDict['dewpoint']
+        tempfs, timestamps, dewpoints = dataDict['tempf'], dataDict['timestamp'], dataDict['dewpoint']
 
-	index_temp_min, index_temp_max = self.minmax(tempf)
-	minTemp, maxTemp = float(tempf[index_temp_min]), float(tempf[index_temp_max])
+	index_temp_min, index_temp_max = self.minmax(tempfs)
+	minTemp, maxTemp = float(tempfs[index_temp_min]), float(tempfs[index_temp_max])
 	minTime, maxTime = timestamps[index_temp_min], timestamps[index_temp_max]
 
         minTimeStr = minTime.strftime('%m-%d %H:%M')
         maxTimeStr = maxTime.strftime('%m-%d %H:%M')
-
-        tempfs = []
-        tempfs = [float(i) for i in tempf]
-
-        dewpoints = []
-        dewpoints = [float(i) for i in dewpoint]
 
 	self.outDict["tempf"] = tempfs[0]
 	self.outDict["dewpoint"] = dewpoints[0]
@@ -362,16 +338,25 @@ class WeatherPlot():
         ax.plot(timestamps, tempfs, 'c-', label='Temp [F]')
 
 	'''
-	for i in range(len(tempfs)):
-	    deltaDew = tempfs[i] - dewpoints[i]
-	    if deltaDew < 5.0:
-		ax.plot(timestamps[i], dewpoints[i], 'b-')
-	    elif deltaDew < 10.0 and deltaDew >= 5.0:
-                ax.plot(timestamps[i], dewpoints[i], 'r-')
+        ax.annotate('Max Temp = %.1f [F]\n%s' % (tempfs[index_temp_max], timestamps[index_temp_max].strftime('%H:%M')),
+        xy=(timestamps[index_temp_max], tempfs[index_temp_max]),
+        xytext=(timestamps[index_temp_max], tempfs[index_temp_max]*0.8), #textcoords='offset pixels',
+	bbox = dict(boxstyle='round', fc='black', fill=False),
+        horizontalalignment='center',
+        verticalalignment='bottom',
+        arrowprops=dict(facecolor='white', shrink=0.2, fill=True))
+
+	ax.annotate('Min Temp = %.1f [F]\n%s' % (tempfs[index_temp_min], timestamps[index_temp_min].strftime('%H:%M')),
+        xy=(timestamps[index_temp_min], tempfs[index_temp_min]),
+        xytext=(timestamps[index_temp_min], tempfs[index_temp_min]*1.2), #textcoords='offset pixels',
+	bbox = dict(boxstyle='round', fc='black', fill=False),
+        horizontalalignment='right',
+        verticalalignment='bottom',
+        arrowprops=dict(facecolor='white', shrink=0.2, fill=True))
 	'''
 
-	currentTemp = tempfs[0]
-	minmaxText = timestamps[0].strftime('%Y%m%d %H:%M:%S')+" || Current Temp: %.1f || Current Dewpoint: %.1f \nLow: %.1f at %s || High: %.1f at %s" % (currentTemp, dewpoints[0], minTemp, minTimeStr, maxTemp, maxTimeStr)
+	currentTemp = float(tempfs[0])
+	minmaxText = timestamps[0].strftime('%Y%m%d %H:%M:%S')+" || Current Temp: %.1f || Current Dewpoint: %.1f \nLow: %.1f at %s || High: %.1f at %s" % (currentTemp, float(dewpoints[0]), minTemp, minTimeStr, maxTemp, maxTimeStr)
 	fig.text(0.05, -0.06, minmaxText)
         majorFormatter = mpl.dates.DateFormatter('%m-%d %H:%M')
         ax.xaxis.set_major_formatter(majorFormatter)
@@ -382,7 +367,7 @@ class WeatherPlot():
         plt.gcf().autofmt_xdate()       #Make dates look pretty in plot
         plt.grid(True)
         fig.tight_layout()
-        plt.savefig(self.plotFolder+'/tempf.png', bbox_inches='tight')
+        plt.savefig(os.getcwd()+'/tempf.png', bbox_inches='tight')
         plt.close('all')
 	plt.clf()
         return
@@ -400,19 +385,19 @@ class WeatherPlot():
 	return
 
     def upload(self, sensorname):
-        image = Image.open(self.plotFolder+'/'+sensorname+'.png')
+        image = Image.open(os.getcwd()+'/'+sensorname+'.png')
         if image.mode == 'RGBA':
             r,g,b,a = image.split()
             rgb_image = Image.merge('RGB', (r,g,b))
             inverted_image = PIL.ImageOps.invert(rgb_image)
             r2,g2,b2 = inverted_image.split()
             final_transparent_image = Image.merge('RGBA', (r2,g2,b2,a))
-            final_transparent_image.save(self.plotFolder+'/'+sensorname+'.png')
+            final_transparent_image.save(os.getcwd()+'/'+sensorname+'.png')
         else:
             inverted_image = PIL.ImageOps.invert(image)
-            inverted_image.save(self.plotFolder+'/'+sensorname+'.png')
+            inverted_image.save(os.getcwd()+'/'+sensorname+'.png')
 
-        shutil.copy(self.plotFolder+'/'+sensorname+'.png', '/var/www/html/'+sensorname+'.png')
+        shutil.copy(os.getcwd()+'/'+sensorname+'.png', '/var/www/html/'+sensorname+'.png')
         print 'copied '+sensorname+'.png'
 
     def checkDay(self, filename):
@@ -428,7 +413,7 @@ class WeatherPlot():
 	    print "Date change processing"
 	    self.date = now
 	    print "Date: "+self.date.strftime("%Y%m%d")
-	    self.logfile = '/home/matt/WeatherStation/logs/'+str(self.date.strftime("%Y%m%d"))+"-weather.txt"
+	    self.logfile = '/logs/'+str(self.date.strftime("%Y%m%d"))+"-weather.txt"
 	    print "Log file: "+self.logfile
 	    print "Date change complete"
 	    return
@@ -452,9 +437,8 @@ class WeatherPlot():
 	    self.upload('humidity')
 	except Exception as e:
 	    print 'Exception:'+str(e)
-	    traceback.print_exc()
 	self.liveDataOut()
-	shutil.copy('/home/matt/WeatherStation/live.txt', '/var/www/html/live.txt')
+	shutil.copy(os.getcwd()+'/live.txt', '/var/www/html/live.txt')
 	self.outDict = {}
 
 	self.checkDay(self.logfile)
