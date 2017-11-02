@@ -31,15 +31,24 @@ these services make each of the python scripts run at boot and restart if
 the process crashes for any reason.
 
 The weather station processes can be controlled with the following command:
+
 sudo systemctl [command] [service]
 
 commands:
+
 start         Immediately starts the process
+
 stop          Immediately stops the process
+
 restart       Stops then starts the process
+
 enable        Enables the process at boot
+
 disable       Diables the process at boot
 
+
 services:
+
 weather_plot.service
+
 weather_interface.service
