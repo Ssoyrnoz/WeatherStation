@@ -9,7 +9,7 @@ https://www.sparkfun.com/products/8942
 The software dependencies and all required files can be installed automatically
 by running 
 ```
-install/make
+.\make
 ```
 This will install every python dependency 
 needed by the code, as well as move files around and set up symbolic links
