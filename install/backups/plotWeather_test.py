@@ -53,9 +53,9 @@ class WeatherPlot():
 	self.outDict = {}
 
 	self.date = datetime.datetime.now()
-        self.logfile = '/home/matt/WeatherStation/logs/'+datetime.datetime.strftime(self.date, "%Y%m%d")+"-weather.txt"
-        self.datafile = self.logfile     #Location of data file
-	self.plotFolder = "/home/matt/WeatherStation/plots"
+        self.logfile = '/logs/'+datetime.datetime.strftime(self.date, "%Y%m%d")+"-weather.txt"
+        self.datafile = str(os.getcwd())+self.logfile     #Location of data file
+	self.plotFolder = str(os.getcwd())+"/plots"
 
 	self.pressure = 'atm'
 
@@ -74,7 +74,7 @@ class WeatherPlot():
         data = {}
 
 	datalist = []
-	tempFile = open('/home/matt/WeatherStation/logs/'+logDate+"-weather.txt",'r')
+	tempFile = open(str(os.getcwd())+'/logs/'+logDate+"-weather.txt",'r')
         templist = tempFile.readlines()
         tempFile.close()
         templist.reverse()
@@ -116,7 +116,7 @@ class WeatherPlot():
 			del datalist[0]
 			continue
 		    if key not in self.sensorKeys:
-			#print "Deleting "+str(timeobj)+" for incorrect key: "+str(key)
+			print "Deleting "+str(timeobj)+" for incorrect key: "+str(key)
 			del datalist[0]
 			linedic = {}
 			continue
@@ -143,7 +143,7 @@ class WeatherPlot():
 		    logDateParse = datetime.datetime.strptime(logDate, "%Y%m%d")
 		    print "logDateParse: "+logDateParse.strftime("%Y%m%d")
 		    logDate = logDateParse - datetime.timedelta(days=1)
-		    tempFile = open('/home/matt/WeatherStation/logs/'+logDate.strftime("%Y%m%d")+"-weather.txt",'r')
+		    tempFile = open(str(os.getcwd())+'/logs/'+logDate.strftime("%Y%m%d")+"-weather.txt",'r')
 		    print "new log file: logs/"+logDate.strftime("%Y%m%d")+"-weather.txt"
 		    templist = tempFile.readlines()
 		    tempFile.close()
@@ -393,7 +393,7 @@ class WeatherPlot():
 	    outString = outString + str(key) + "=" + str(value) + ","
 	outString = outString[:-1]
 	#print outString
-	directory = "/home/matt/WeatherStation/logs/live.txt"
+	directory = str(os.getcwd())+"/live.txt"
         f_out = open(directory,'w')
         f_out.write(outString)
         f_out.close()
@@ -416,9 +416,8 @@ class WeatherPlot():
         print 'copied '+sensorname+'.png'
 
     def checkDay(self, filename):
-	print os.path.split(filename)[1]
 	now = datetime.datetime.now()
-	filedate = os.path.split(filename)[1].translate(None ,'-weather.txt')
+	filedate = str(filename).translate(None ,'/logs/-weather.txt')
 	checktime = datetime.datetime.strptime(filedate, "%Y%m%d")
 	print 'Now: '+now.strftime("%Y%m%d %H:%M:%S")
 	print 'Checktime: '+checktime.strftime("%Y%m%d")
@@ -429,7 +428,7 @@ class WeatherPlot():
 	    print "Date change processing"
 	    self.date = now
 	    print "Date: "+self.date.strftime("%Y%m%d")
-	    self.logfile = '/home/matt/WeatherStation/logs/'+str(self.date.strftime("%Y%m%d"))+"-weather.txt"
+	    self.logfile = '/logs/'+str(self.date.strftime("%Y%m%d"))+"-weather.txt"
 	    print "Log file: "+self.logfile
 	    print "Date change complete"
 	    return
@@ -455,7 +454,7 @@ class WeatherPlot():
 	    print 'Exception:'+str(e)
 	    traceback.print_exc()
 	self.liveDataOut()
-	shutil.copy('/home/matt/WeatherStation/logs/live.txt', '/var/www/html/live.txt')
+	shutil.copy(os.getcwd()+'/live.txt', '/var/www/html/live.txt')
 	self.outDict = {}
 
 	self.checkDay(self.logfile)

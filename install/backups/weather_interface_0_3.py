@@ -32,7 +32,7 @@ class WeatherInterface():
     def __init__(self):
 	self.serPort = '/dev/ttyACM0'
         self.dictlength = 16        #Number of lines from serial
-        self.logfile = '/home/matt/WeatherStation/logs/'+datetime.datetime.now().strftime("%Y%m%d")+"-weather.txt"
+        self.logfile = '/logs/'+datetime.datetime.now().strftime("%Y%m%d")+"-weather.txt"
         #self.logfile = '/weather.txt'
 
     def log(self):
@@ -68,7 +68,7 @@ class WeatherInterface():
         return s
 
     def serOut(self, status, filename):
-        directory = filename
+        directory = str(os.getcwd())+filename
         f_out = open(directory,'a')
         #print str(directory)
         f_out.write(str(status)+'\n')
@@ -93,8 +93,7 @@ class WeatherInterface():
 
     def checkDay(self, filename):
         now = datetime.datetime.now()
-	print filename
-        filedate = filename.translate(None, '/home/matt/WeatherStation/logs/-weather.txt')
+        filedate = filename.translate(None, '/logs/-weather.txt')
         print now.strftime("%Y%m%d %H:%M:%S")
 	checktime = datetime.datetime.strptime(filedate, "%Y%m%d")
         #checktime = datetime
@@ -105,7 +104,7 @@ class WeatherInterface():
             print "Date change processing"
             self.closePort()
 	    now = datetime.datetime.now()
-            self.logfile = '/home/matt/WeatherStation/logs/'+str(now.strftime("%Y%m%d"))+"-weather.txt"
+            self.logfile = '/logs/'+str(now.strftime("%Y%m%d"))+"-weather.txt"
             self.openPort()
             return
 
@@ -126,7 +125,7 @@ class WeatherInterface():
 		if len(sortedDat) == self.dictlength:
                     try:
 			self.serOut(outDat, self.logfile)
-			liveOut = open('/home/matt/WeatherStation/logs/live_raw.txt', 'w')
+			liveOut = open(str(os.getcwd())+'/live_raw.txt', 'w')
 			liveOut.write(outDat)
 			liveOut.close()
                         nap = 10
