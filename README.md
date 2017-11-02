@@ -35,7 +35,7 @@ The weather station processes can be controlled with the following command:
 sudo systemctl [command] [service]
 
 commands:
-start         Immediately starts the process\r\n
+start         Immediately starts the process
 stop          Immediately stops the process
 restart       Stops then starts the process
 enable        Enables the process at boot
