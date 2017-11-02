@@ -1,1 +1,0 @@
-winddir=135,windspeedmph=2.9,windgustmph=3.2,windgustdir=180,windspdmph_avg2m=1.0,winddir_avg2m=173,windgustmph_10m=3.2,windgustdir_10m=180,humidity=80.6,tempf=47.9,rainin=5.10,dailyrainin=5.10,pressure=97336.25,light_lvl=0.00,timestamp=20171101-19:52:34,dewpoint=40.9
