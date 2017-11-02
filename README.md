@@ -6,7 +6,11 @@ and the SparkFun Weather Meters:
 https://www.sparkfun.com/products/8942
 
 The software dependencies and all required files can be installed automatically
-by running the install/make program. This will install every python dependency 
+by running 
+```
+install/make
+```
+This will install every python dependency 
 needed by the code, as well as move files around and set up symbolic links
 needed for systemd to run the weather station software at boot.
 
@@ -32,15 +36,17 @@ the process crashes for any reason.
 
 The weather station processes can be controlled with the following command:
 
+```
 sudo systemctl [command] [service]
+```
 
 commands:
-start         Immediately starts the process
-stop          Immediately stops the process
-restart       Stops then starts the process
-enable        Enables the process at boot
-disable       Diables the process at boot
+*start         Immediately starts the process
+*stop          Immediately stops the process
+*restart       Stops then starts the process
+*enable        Enables the process at boot
+*disable       Diables the process at boot
 
 services:
-weather_plot.service
-weather_interface.service
+*weather_plot.service
+*weather_interface.service
