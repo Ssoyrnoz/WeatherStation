@@ -393,7 +393,7 @@ class WeatherPlot():
 	    outString = outString + str(key) + "=" + str(value) + ","
 	outString = outString[:-1]
 	#print outString
-	directory = str(os.getcwd())+"/live.txt"
+	directory = "/home/matt/WeatherStation/live.txt"
         f_out = open(directory,'w')
         f_out.write(outString)
         f_out.close()
@@ -416,8 +416,9 @@ class WeatherPlot():
         print 'copied '+sensorname+'.png'
 
     def checkDay(self, filename):
+	print os.path.split(filename)[1]
 	now = datetime.datetime.now()
-	filedate = str(filename).translate(None ,'/logs/-weather.txt')
+	filedate = os.path.split(filename)[1].translate(None ,'-weather.txt')
 	checktime = datetime.datetime.strptime(filedate, "%Y%m%d")
 	print 'Now: '+now.strftime("%Y%m%d %H:%M:%S")
 	print 'Checktime: '+checktime.strftime("%Y%m%d")

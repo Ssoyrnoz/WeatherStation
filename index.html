@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+<meta http-equiv="cahce-control" content="no-cache">
+<meta http-equiv="expires" content="0">
+<meta http-equiv="pragma" content="no-cache">
+<meta http-equiv="refresh" content="30">
+
+<style>
+p {
+    font-size:150%;
+    display: block;
+    margin-top: -0.5em;
+    margin-bottom: -0.5em;
+    margin-left: 0;
+    margin-right: 0;
+    color:white
+}
+
+a {
+    color:white
+}
+
+</style>
+
+<title>Hermitage Weather</title>
+</head>
+
+<script>
+    var scrptE = document.createElement("script");
+    scrptE.setAttribute("type", "text/javascript");
+    scrptE.setAttribute("language", "JavaScript");
+    scrptE.setAttribute("src", "weather.js?" + (Date.now() % 10000));
+    var head = document.getElementsByTagName("head")[0];
+    head.appendChild(scrptE);
+</script>
+
+
+<body onload="pageTimer(); pageClock(); calculateLST();" bgcolor="black">
+    <h1>
+        <center><font color="darkviolet">Hermitage Weather Station - Release 0.3</font></center>
+    </h1>
+    <font color="white">
+    <pre id="dataDump"><pre>
+    <table style="width:100%" border="0" cellpadding=1 cellspacing=20>
+    <tr>
+        <td>
+	<p id="time">Current time: Unknown</p>
+	<p id="timestamp">Data current as of: Unknown</p>
+	</td>
+	<td>
+	<p id="utc_clock">Current UTC: Unknown</p>
+	<p id="lst_clock">Current LST: Unknown</p>
+	</td>
+    </tr>
+    <hr>
+    <tr>
+	<td>
+	<p id="temp"><a href="tempf.png">Temp [F]: Unavailable</a></p>
+	<p id="dewpoint"><a href="tempf.png">Dew Point [F]: Unavailable</a></p>
+	<p id="tempHigh"><a href="tempf.png">High Temp [F]: Unavailable</a></p>
+	</td>
+	<td>
+	<p id="wind"><a href="wind.png">Current Wind [mph]: Unavailable</a></p>
+	<p id="windGust"><a href="wind.png">Current Wind Gust [mph]: Unavailable</a></p>
+	<p id="windMax"><a href="wind.png">Max Wind [mph]: Unavailable</a></p>
+	</td>
+    </tr>
+    <tr>
+	<td>
+	<p id="humidity"><a href="humidity.png">Humidity [%]: Unavailable</a></p>
+	<p id="humMax"><a href="humidity.png">Max Humidity [%]: Unavailable</a></p>
+	</td>
+        <td>
+	<p id="pressure"><a href="pressure.png">Atmospheric Pressure [atm]: Unavailable</a></p>
+	<p id="maxPrs"><a href="pressure.png">Max Pressure [atm]: Unavailable</a></p>
+	</td>
+    </tr>
+
+    </table>
+<br><Br>
+<center>
+Data will auto-refresh every 30 seconds<br><br>
+</center>
+<p id="sortedDat">Sorted data goes here</p>
+</font>
+</body>
+</html>
+

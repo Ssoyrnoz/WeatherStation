@@ -32,7 +32,7 @@ class WeatherInterface():
     def __init__(self):
 	self.serPort = '/dev/ttyACM0'
         self.dictlength = 16        #Number of lines from serial
-        self.logfile = os.getcwd()+'/logs/'+datetime.datetime.now().strftime("%Y%m%d")+"-weather.txt"
+        self.logfile = '/home/matt/WeatherStation/logs/'+datetime.datetime.now().strftime("%Y%m%d")+"-weather.txt"
         #self.logfile = '/weather.txt'
 
     def log(self):
@@ -105,7 +105,7 @@ class WeatherInterface():
             print "Date change processing"
             self.closePort()
 	    now = datetime.datetime.now()
-            self.logfile = os.getcwd()+'/logs/'+str(now.strftime("%Y%m%d"))+"-weather.txt"
+            self.logfile = '/home/matt/WeatherStation/logs/'+str(now.strftime("%Y%m%d"))+"-weather.txt"
             self.openPort()
             return
 
