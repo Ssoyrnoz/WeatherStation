@@ -41,12 +41,12 @@ sudo systemctl [command] [service]
 ```
 
 commands:
-*start         Immediately starts the process
-*stop          Immediately stops the process
-*restart       Stops then starts the process
-*enable        Enables the process at boot
-*disable       Diables the process at boot
+* start     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;    Immediately starts the process
+* stop      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;    Immediately stops the process
+* restart   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;    Stops then starts the process
+* enable    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;    Enables the process at boot
+* disable   &nbsp;&nbsp;&nbsp;&nbsp;    Diables the process at boot
 
 services:
-*weather_plot.service
-*weather_interface.service
+* weather_plot.service
+* weather_interface.service
