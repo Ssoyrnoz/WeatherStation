@@ -245,18 +245,30 @@ class WeatherPlot():
 	avgData['dewptf']=avgData['dewpoint']
 
 	outData = {}
+        outData['ID']=self.stationID
+        outData['PASSWORD']=self.stationKey
+
 	for key in avgData:
 	   if key in self.uploadKeys:
 	      outData[key]=avgData[key]
 
-	print outData
+	outData['dateutc']='now'
+	outData['action']='updateraw'
+	print "========================================"
+	print "   Weather Data  ~  %s" %(dataDict['timestamp'][0].strftime("%Y%m%d - %H:%M"))
+	print " "
+	print "TempF = %s          Humid = %s" %(outData['tempf'], outData['humidity'])
+	print "Dew = %s            Press = %s" %(outData['dewptf'], outData['baromin'])
+	print " "
+	print "Wind avg2m = %s      Wind Dir = %s" %(outData['windspdmph_avg2m'], outData['winddir_avg2m'])
+        print "Wind Gust 10m = %s   Gust Dir = %s" %(outData['windgustmph_10m'], outData['windgustdir'])
+	print " "
+	print "Rain = %s          Daily Rain = %s" %(dataDict['rainin'][0], dataDict['dailyrainin'][0])
+	print "========================================"
 
-	outString = "https://weatherstation.wunderground.com/weatherstation/updateweatherstation.php?"
-        outString = outString+"ID="+self.stationID+"&PASSWORD="+self.stationKey+"&dateutc=now"
 
-
-        outString = outString+"&action=updateraw"
-        print outString
+	r = requests.post("https://weatherstation.wunderground.com/weatherstation/updateweatherstation.php", data=outData)
+        print "Upload status = "+r.text
 
     def run(self):
         currentTime = datetime.datetime.now()
