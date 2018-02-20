@@ -16,6 +16,7 @@ class WeatherPlot():
         self.stationID = "KWATOUTL10"
         self.stationKey = "7u79f0i8"
 
+	self.sleepTime = 30		#How long to slep btwn updates, in seconds
         self.avgTime = 60		#Length of data average, in seconds
 
 	self.date = datetime.datetime.now()
@@ -281,7 +282,7 @@ if __name__ == "__main__":
     wp = WeatherPlot()
 
     run = True
-    sleepTime = 30.0
+    sleepTime = wp.sleepTime
 
     while run == True:
         tic = time.clock()
@@ -292,5 +293,11 @@ if __name__ == "__main__":
 	    elapsedTime = sleepTime
 	if elapsedTime < 0.0:
 	    elapsedTime = sleepTime
-	print 'processing time [s] = '+str(elapsedTime)
-        time.sleep(sleepTime-elapsedTime)
+	print 'Processing time [s] = '+str(elapsedTime)
+        for remaining in range(sleepTime, 0, -1):
+	    sys.stdout.write("\r")
+	    sys.stdout.write("Sleeping for {:2d} seconds.".format(remaining)) 
+	    sys.stdout.flush()
+	    time.sleep(1)
+
+	sys.stdout.write("\r                                        \n")
