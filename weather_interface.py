@@ -27,6 +27,7 @@ import datetime
 import os
 import csv
 import math
+import requests
 
 class WeatherInterface():
     def __init__(self):
@@ -34,6 +35,8 @@ class WeatherInterface():
         self.dictlength = 16        #Number of lines from serial
         self.logfile = '/home/matt/WeatherStation/logs/'+datetime.datetime.now().strftime("%Y%m%d")+"-weather.txt"
         #self.logfile = '/weather.txt'
+	self.WU_count = 0	    #Delay counter for WU upload
+	self.runStart = datetime.datetime.now()
 
     def log(self):
     	"""
@@ -65,6 +68,7 @@ class WeatherInterface():
             s (string): parsed serial output
         """
         s = self.ser.readline().rstrip("\n").rstrip("\r")
+	#print s
         return s
 
     def serOut(self, status, filename):
@@ -109,13 +113,38 @@ class WeatherInterface():
             self.openPort()
             return
 
+    def wundergroundOut(self, sortedDat):
+	print 'Starting WUnderground upload'
+	WUurl = 'https://weatherstation.wunderground.com/weatherstation/updateweatherstation.php?'
+	WU_station_id = 'KWATOUTL14'
+	WU_station_key = 'zk779BNA'
+	WUcreds = "ID=" + WU_station_id + "&PASSWORD="+ WU_station_key
+	WU_date_str = '&dateutc=now'
+	WU_action_str = '&action=updateraw'
+	WU_temp = '&tempf='+str(sortedDat['tempf'])
+	WU_humidity = '&humidity='+str(sortedDat['humidity'])
+	WU_baromin = '&baromin='+'%.2f' %(float(sortedDat['pressure'])/3386.39)
+	WU_dewptf = '&dewptf='+str(sortedDat['dewpoint'])
+	WU_windspeedmph = '&windspeedmph='+str(sortedDat['windspeedmph'])
+	WU_winddir = '&winddir='+str(sortedDat['winddir'])
+	WU_windgustmph = '&windgustmph='+str(sortedDat['windgustmph_10m'])
+	WU_windgustdir = '&windgustdir='+str(sortedDat['windgustdir_10m'])
+	WU_windgustmph_10m = '&windgustmph_10m='+str(sortedDat['windgustmph_10m'])
+	WU_windgustdir_10m = '&windgustdir_10m='+str(sortedDat['windgustdir_10m'])
+	WU_string = WUurl+WUcreds+WU_date_str+WU_temp+WU_humidity+WU_baromin+WU_dewptf+WU_windspeedmph+WU_winddir+WU_windgustmph+WU_windgustdir+WU_windgustmph_10m+WU_windgustdir_10m+WU_action_str
+	print WU_string
+	r = requests.get(WU_string)
+	print("Received " + str(r.status_code) + " " + str(r.text))
+	return
+
     def run(self):
         rawDat = self.readSer()
 	#print rawDat
 	currentTime = datetime.datetime.now()
         if rawDat.startswith('winddir=') == True:
             timestamp = currentTime.strftime("%Y%m%d-%H:%M:%S")
-            timedDat = rawDat+',timestamp='+str(timestamp)
+            weewxTime = currentTime.strftime("%Y%m%d %H:%M:%S")
+	    timedDat = rawDat+',timestamp='+str(timestamp)
             try:
                 sortedDat = self.sortOutput(timedDat)
 		Tdp = self.dewPoint(sortedDat['humidity'], sortedDat['tempf'])
@@ -129,8 +158,25 @@ class WeatherInterface():
 			liveOut = open('/home/matt/WeatherStation/logs/live_raw.txt', 'w')
 			liveOut.write(outDat)
 			liveOut.close()
-                        nap = 10
-                        print "tmp[F]="+str(sortedDat['tempf'])+",hum[%]="+str(sortedDat['humidity'])+",dwp[F]="+str(sortedDat['dewpoint'])+",prs[pas]="+str(sortedDat['pressure'])+",wspd="+str(sortedDat['windspeedmph'])+",wspd2m="+str(sortedDat['windspdmph_avg2m'])+",wgst10m="+str(sortedDat['windgustmph_10m'])
+			nap = 10
+			if self.WU_count == 6:
+			    tic = time.clock()
+			    self.wundergroundOut(sortedDat)
+			    self.WU_count = 0
+			    #Calculate process runtime
+			    runDelta = datetime.datetime.now() - self.runStart
+			    #runDays, remainder = divmod(runDelta.total_seconds(),86400)
+			    #runHours, remainder2 = divmod(remainder, 3600)
+			    #print 'Process run time = ' + str(runDays) + ' days and ' + str(runHours) + ' hours.'
+			    print 'Runtime = '+str(runDelta)
+			    toc = time.clock()
+			    process_time = toc - tic
+			    if process_time < 10:
+			        nap = 10 - process_time
+			    else:
+				nap = 0.1
+			self.WU_count += 1
+                        print "tmp[F]="+str(sortedDat['tempf'])+",hum[%]="+str(sortedDat['humidity'])+",dwp[F]="+str(sortedDat['dewpoint'])+",prs[pas]="+str(sortedDat['pressure'])+",wspd="+str(sortedDat['windspeedmph'])+",wspd2m="+str(sortedDat['windspdmph_avg2m'])+",wgst10m="+str(sortedDat['windgustmph_10m'])+',rainin='+str(sortedDat['rainin'])
                     except Exception as e:
 			print e
 			nap = 0.1
